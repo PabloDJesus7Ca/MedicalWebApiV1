@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  admin
+  doctor
+}
+
+enum StatusAgenda {
+  scheduled
+  waiting
+  in_progress
+  completed
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  password  String
+  activo    Boolean  @default(true)
+  rol       Rol
+  creadoEn  DateTime @default(now())
+  doctor    Doctor?
+}
+
+model Doctor {
+  id          Int                 @id @default(autoincrement())
+  userId      Int                 @unique
+  user        User                @relation(fields: [userId], references: [id])
+  agendas     Agenda[]
+  historiales HistorialPaciente[]
+}
+
+model Paciente {
+  id              Int                 @id @default(autoincrement())
+  nombre          String
+  dni             String              @unique
+  fechaNacimiento DateTime
+  sexo            String
+  creadoEn        DateTime            @default(now())
+  agendas         Agenda[]
+  historiales     HistorialPaciente[]
+}
+
+model Agenda {
+  id          Int               @id @default(autoincrement())
+  pacienteId  Int
+  doctorId    Int
+  paciente    Paciente          @relation(fields: [pacienteId], references: [id])
+  doctor      Doctor            @relation(fields: [doctorId], references: [id])
+  status      StatusAgenda
+  tipo        String
+  scheduledAt DateTime
+  historial   HistorialPaciente?
+
+  @@index([scheduledAt])
+  @@index([doctorId, scheduledAt])
+}
+
+model HistorialPaciente {
+  id            Int      @id @default(autoincrement())
+  agendaId      Int      @unique
+  pacienteId    Int
+  doctorId      Int
+  agenda        Agenda   @relation(fields: [agendaId], references: [id])
+  paciente      Paciente @relation(fields: [pacienteId], references: [id])
+  doctor        Doctor   @relation(fields: [doctorId], references: [id])
+  observacion   String?
+  diagnostico   String?
+  sintomasInput String?
+  creadoEn      DateTime @default(now())
+
+  @@index([pacienteId, creadoEn])
+  @@index([doctorId, creadoEn])
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int?
+  nivel       String
+  mensaje     String
+  codigoError String?
+  creadoEn    DateTime @default(now())
+
+  @@index([creadoEn])
+}

@@ -1,0 +1,37 @@
+import express, { Express } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import { config } from "./configurations/configs";
+import { checkDomianServerCors } from "./Shared/middlewares/checkDomainsServer";
+import routes from "./routes/agent.routes";
+import { errorHandler } from "./Shared/middlewares/errorHandlerGlobal";
+const app: Express = express();
+
+app.use(
+  cors(
+    checkDomianServerCors({
+      ListOfDomainType: ["http://localhost:3012"],
+      methods: ["GET", "POST", "PUT", "DELETE"],
+    })
+  )
+);
+
+app.use(helmet());
+app.use(express.json());
+
+app.use("/api", routes);
+
+app.get("/health", (_, response) => {
+  response.status(200).json({ message: "Server On ago" });
+});
+
+app.use("/*path", (_, response) => {
+  response.status(404).json({ message: "Route Not Found" });
+});
+
+app.use(errorHandler);
+
+app.listen(config.PORT, () => {
+  console.log(`
+        El Servidor Esta Prendido En http://localhost:${config.PORT}`);
+});

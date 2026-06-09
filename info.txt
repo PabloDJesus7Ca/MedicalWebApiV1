@@ -1,0 +1,27 @@
+Flujo típico de trabajo
+
+Durante el desarrollo:
+
+npm run dev
+
+Antes de subir cambios a Git:
+
+npm run lint
+npm run format
+
+Para generar la versión lista para producción:
+
+npm run build
+
+Y luego ejecutarla:
+
+npm run start
+
+En resumen:
+
+dev → programar y probar.
+lint → revisar calidad del código.
+lint:fix → corregir problemas automáticamente.
+format → ordenar y dar formato al código.
+build → convertir TypeScript a JavaScript.
+start → ejecutar la aplicación compilada.
