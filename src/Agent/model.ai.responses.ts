@@ -16,5 +16,5 @@ export default async function main(asking: string) {
       maxOutputTokens: 4000,
     },
   });
-  console.log(response.text);
+  return response.text;
 }

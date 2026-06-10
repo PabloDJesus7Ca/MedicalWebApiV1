@@ -1,4 +1,6 @@
 import express, { Express } from "express";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./configurations/swagger";
 import cors from "cors";
 import helmet from "helmet";
 import { config } from "./configurations/configs";
@@ -10,12 +12,13 @@ const app: Express = express();
 app.use(
   cors(
     checkDomianServerCors({
-      ListOfDomainType: ["http://localhost:3012"],
+      ListOfDomainType: ["http://localhost:3012", "http://localhost:3003"],
       methods: ["GET", "POST", "PUT", "DELETE"],
     })
   )
 );
 
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(helmet());
 app.use(express.json());
 
