@@ -1,5 +1,3 @@
-Backend API for the Medical AI platform developed as a final project.
-
 # Medical AI Backend
 
 Backend desarrollado con TypeScript, Express y Prisma para proporcionar servicios de inteligencia artificial aplicada al ámbito médico.
@@ -17,6 +15,8 @@ Backend desarrollado con TypeScript, Express y Prisma para proporcionar servicio
 - Helmet
 - CORS
 - Dotenv
+- Swagger OpenAPI
+- Swagger UI
 - ESLint
 - Prettier
 
@@ -34,6 +34,8 @@ Backend desarrollado con TypeScript, Express y Prisma para proporcionar servicio
 - Configuración de seguridad con Helmet.
 - Configuración de CORS personalizada.
 - Variables de entorno mediante Dotenv.
+- Documentación interactiva de la API mediante Swagger.
+- Pruebas de endpoints directamente desde Swagger UI.
 - Formateo y análisis estático de código con Prettier y ESLint.
 
 ---
@@ -143,7 +145,69 @@ Corrige automáticamente problemas detectados por ESLint.
 npm run format
 ```
 
-Formatea el proyecto utilizando Prettier.`
+Formatea el proyecto utilizando Prettier.
+
+---
+
+## Documentación de la API (Swagger)
+
+La API incluye documentación interactiva mediante Swagger OpenAPI.
+
+Swagger permite:
+
+- Consultar todos los endpoints disponibles.
+- Visualizar parámetros de entrada y salida.
+- Ejecutar peticiones directamente desde el navegador.
+- Facilitar la integración con aplicaciones frontend y servicios externos.
+
+### Acceder a Swagger
+
+Una vez iniciado el servidor:
+
+```bash
+npm run dev
+```
+
+Abrir en el navegador:
+
+```text
+http://localhost:3003/api-docs
+```
+
+> Si el puerto configurado en tu archivo `.env` es diferente, reemplaza `3003` por el puerto correspondiente.
+
+### Cómo utilizar Swagger
+
+1. Accede a `/api-docs`.
+2. Selecciona el endpoint que deseas probar.
+3. Haz clic en **Try it out**.
+4. Completa los parámetros o el cuerpo de la solicitud.
+5. Haz clic en **Execute**.
+6. Revisa la respuesta generada por la API.
+
+### Ejemplo
+
+Endpoint:
+
+```http
+POST /api/chat
+```
+
+Request:
+
+```json
+{
+  "message": "¿Cuáles son los síntomas de la diabetes?"
+}
+```
+
+Response:
+
+```json
+{
+  "response": "Los síntomas más comunes de la diabetes incluyen..."
+}
+```
 
 ---
 
