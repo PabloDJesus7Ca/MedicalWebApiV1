@@ -17,7 +17,7 @@ Esta sección documenta el inicio del desarrollo, la configuración del entorno,
 
 ## 1.2 Diagrama Entidad-Relación (ER)
 
-![Diagrama Entidad-Relación de MedReason AI](diagrama_er.png)
+![Diagrama Entidad-Relación de MedReason AI](DiagramaER.png)
 
 ---
 
