@@ -1,4 +1,5 @@
 import swaggerJsdoc from "swagger-jsdoc";
+import { config } from "./configs";
 
 const options = {
   definition: {
@@ -10,7 +11,7 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3003/api",
+        url: `http://localhost:${config.PORT}/api`,
       },
     ],
   },
@@ -19,3 +20,4 @@ const options = {
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
+
