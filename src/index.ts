@@ -12,7 +12,7 @@ const app: Express = express();
 app.use(
   cors(
     checkDomianServerCors({
-      ListOfDomainType: ["http://localhost:3012", "http://localhost:3003"],
+      ListOfDomainType: ["http://localhost:3012", "http://localhost:3003", "http://localhost:5675"],
       methods: ["GET", "POST", "PUT", "DELETE"],
     })
   )
