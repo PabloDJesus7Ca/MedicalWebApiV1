@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  ADMIN
+  DOCTOR
+}
+
+/// Representa a los usuarios autenticados del sistema (médicos o administradores).
+model User {
+  id        Int        @id @default(autoincrement())
+  nombre    String
+  email     String     @unique
+  password  String
+  activo    Boolean    @default(true)
+  rol       Rol
+  creadoEn  DateTime   @default(now())
+  
+  // Relaciones
+  pacientes Paciente[] @relation("PacienteCreador")
+  consultas Consulta[] @relation("DoctorConsulta")
+  auditLogs AuditLog[]
+
+  @@index([email])
+}
+
+/// Representa el registro clínico básico de cada paciente.
+model Paciente {
+  id          Int           @id @default(autoincrement())
+  nombre      String
+  edad        Int
+  sexo        String
+  documento   String        @unique
+  creadoPorId Int
+  createdAt   DateTime      @default(now())
+
+  // Relaciones
+  creadoPor    User          @relation("PacienteCreador", fields: [creadoPorId], references: [id])
+  consultas    Consulta[]
+  laboratorios Laboratorio[]
+
+  @@index([documento])
+  @@index([nombre])
+}
+
+/// Guarda la trazabilidad inmutable de cada consulta diagnóstica procesada por la IA.
+model Consulta {
+  id            Int      @id @default(autoincrement())
+  doctorId      Int
+  pacienteId    Int
+  input         String   // Síntomas y datos clínicos ingresados
+  output        String   // Diagnósticos y recomendaciones generadas por la IA
+  nivelRiesgo   String   // Nivel de riesgo consolidado (Alto, Medio, Bajo)
+  modelo        String   // Nombre del modelo IA utilizado
+  promptVersion String   // Versión del prompt del sistema utilizada
+  tokens        Int      // Cantidad de tokens consumidos en la consulta
+  createdAt     DateTime @default(now())
+
+  // Relaciones
+  doctor   User     @relation("DoctorConsulta", fields: [doctorId], references: [id])
+  paciente Paciente @relation(fields: [pacienteId], references: [id])
+
+  @@index([doctorId])
+  @@index([pacienteId])
+  @@index([createdAt])
+}
+
+/// Almacena los resultados de laboratorio clínicos asociados a un paciente.
+model Laboratorio {
+  id          Int      @id @default(autoincrement())
+  pacienteId  Int
+  descripcion String
+  resultado   String
+  fecha       DateTime @default(now())
+
+  // Relaciones
+  paciente Paciente @relation(fields: [pacienteId], references: [id])
+
+  @@index([pacienteId])
+  @@index([fecha])
+}
+
+/// Configuración global de la IA (Patrón Singleton).
+model Config {
+  id           Int      @id @default(1)
+  modelName    String   @default("gemini-2.5-flash")
+  maxTokens    Int      @default(4000)
+  temperatura  Float    @default(0.1)
+  systemPrompt String   @db.Text
+  updatedAt    DateTime @updatedAt
+}
+
+/// Control de versiones de los prompts del sistema para reproducibilidad de análisis.
+model PromptVersion {
+  id        Int      @id @default(autoincrement())
+  version   String
+  contenido String   @db.Text
+  activo    Boolean  @default(false)
+  creadoEn  DateTime @default(now())
+
+  @@index([version])
+}
+
+/// Registro inmutable de acciones realizadas en el sistema (trazabilidad y auditoría).
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  accion     String
+  entidad    String
+  entidadId  Int?
+  detalle    String
+  createdAt  DateTime @default(now())
+
+  // Relaciones
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+}
