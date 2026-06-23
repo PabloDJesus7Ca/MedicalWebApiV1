@@ -6,6 +6,7 @@ import helmet from "helmet";
 import { config } from "./configurations/configs";
 import { checkDomianServerCors } from "./Shared/middlewares/checkDomainsServer";
 import routes from "./routes/agent.routes";
+import routesAuth from "./modules/auth/auth.routes"
 import { errorHandler } from "./Shared/middlewares/errorHandlerGlobal";
 const app: Express = express();
 
@@ -23,6 +24,7 @@ app.use(helmet());
 app.use(express.json());
 
 app.use("/api", routes);
+app.use("/api", routesAuth);
 
 app.get("/health", (_, response) => {
   response.status(200).json({ message: "Server On ago" });
