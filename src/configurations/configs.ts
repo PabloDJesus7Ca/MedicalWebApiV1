@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { SignOptions } from "jsonwebtoken";
 dotenv.config();
 
 interface CorsOriginOptions {
@@ -8,6 +9,8 @@ interface CorsOriginOptions {
 
 interface IEConfig {
   PORT: number;
+  JWT_SECRET: string;
+  JWT_EXPIRES_IN: SignOptions["expiresIn"];
 }
 
 interface IEApiKey {
@@ -15,7 +18,9 @@ interface IEApiKey {
 }
 
 const config: IEConfig = {
-  PORT: Number(process.env.PORT) ?? 3006,
+  PORT: Number(process.env.PORT) || 3006,
+  JWT_SECRET: process.env.JWT_SECRET as string,
+  JWT_EXPIRES_IN: (process.env.JWT_EXPIRES_IN || "1h") as SignOptions["expiresIn"],
 };
 
 const apiKeys: IEApiKey = {

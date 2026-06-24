@@ -13,4 +13,3 @@ export const VerifyPassword = async (
   const passwordUser = await compare(passwordInsecureUser, storeHash);
   return passwordUser;
 };
-

@@ -14,7 +14,6 @@ export class UserControllerAi {
       if (typeof maybeSug === "string") {
         promptInput = maybeSug;
       } else {
-
         const maybeText = (pregunta as any).text ?? (pregunta as any).message;
         if (typeof maybeText === "string") promptInput = maybeText;
       }

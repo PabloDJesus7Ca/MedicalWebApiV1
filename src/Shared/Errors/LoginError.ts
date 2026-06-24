@@ -6,5 +6,3 @@ export class UserResponses extends Error {
     Object.setPrototypeOf(this, UserResponses.prototype);
   }
 }
-
-

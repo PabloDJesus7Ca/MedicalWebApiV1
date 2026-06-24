@@ -1,1 +1,1 @@
-export const CONST_FACTOR =10
+export const CONST_FACTOR = 10;

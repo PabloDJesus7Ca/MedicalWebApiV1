@@ -4,6 +4,7 @@ import { hashdPassword, VerifyPassword } from "../../Shared/utils/password.helpe
 import { CheckTypeLoginDto, CreateUserDto } from "./auth.models.user";
 import { ResponseCreateUserDto } from "./auth.types.user";
 import { ShowRealResponseToUser } from "./auth.fn.model";
+import { SingToken } from "../../Shared/utils/jwt.helper";
 
 export class AuthService {
   static async createNewUserFromService(data: CreateUserDto): Promise<ResponseCreateUserDto> {
@@ -24,18 +25,24 @@ export class AuthService {
     return user;
   }
 
-  static async CheckLoginUserFromService(user: CheckTypeLoginDto): Promise<boolean> {
+  static async CheckLoginUserFromService(user: CheckTypeLoginDto): Promise<string> {
     const userExist = await AuthRepository.CheckUser(user.email);
-    const passwordUser = await VerifyPassword(user.password, userExist?.password!);
-
-    if (userExist?.email !== user.email) {
+    if (!userExist) {
       throw new UserResponses("Este Email Es Incorrecto");
     }
+
+    const passwordUser = await VerifyPassword(user.password, userExist.password);
 
     if (passwordUser === false) {
       throw new UserResponses("Esta Contrasena Es Incorrecta");
     }
-    return true;
+
+    const token = SingToken({
+      id: userExist.id,
+      email: userExist.email,
+      rol: userExist.rol,
+    });
+    return token;
   }
   // TODO: Implementar lógica de validación de credenciales y firma de JWT (RF-01, RF-02)
 }

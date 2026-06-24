@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { UserControllerAi } from "../controllers/consult.response.ai.controller";
+import { authMiddleware, checkRoleMiddleware } from "../Shared/middlewares/auth.middleware";
+import { Rol } from "../generated/prisma";
 const routes: Router = Router();
 
 /**
@@ -23,6 +25,6 @@ const routes: Router = Router();
  *       200:
  *         description: Respuesta de la IA
  */
-routes.post("/chat", UserControllerAi.Chat);
+routes.post("/chat", authMiddleware, checkRoleMiddleware(Rol.DOCTOR), UserControllerAi.Chat);
 
 export default routes;
