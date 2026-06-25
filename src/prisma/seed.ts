@@ -7,7 +7,7 @@ async function main() {
   // 1. Crear el primer usuario administrador por defecto
   const adminEmail = "admin@medreason.ai";
   const defaultPassword = "AdminPassword123!";
-  
+
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail },
   });
@@ -15,7 +15,7 @@ async function main() {
   if (!existingAdmin) {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(defaultPassword, saltRounds);
-    
+
     await prisma.user.create({
       data: {
         nombre: "Administrador del Sistema",

@@ -1,12 +1,33 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
+import { AuthService } from "./auth.service";
 
 export class AuthController {
   // TODO: Implementar controlador de login (RF-01, RF-02)
-  static async login(_req: Request, res: Response, next: NextFunction) {
+  static async loginOfUserFromController(request: Request, response: Response) {
     try {
-      res.status(501).json({ message: "No implementado" });
-    } catch (error) {
-      next(error);
+      const token = await AuthService.CheckLoginUserFromService(request.body);
+
+      return response.status(200).json({ message: "Haz Iniciado Session Correctamente", token });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return response.status(404).json({ message: error.message });
+      }
+      return response.status(500).json({ message: "Error Desconocido" });
+    }
+  }
+
+  static async RegisterNewUserFromController(request: Request, response: Response) {
+    try {
+      const NewUser = await AuthService.createNewUserFromService(request.body);
+
+      return response.status(201).json({ NewUser });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return response.status(400).json({
+          message: error.message,
+        });
+      }
+      return response.status(500).json({ message: "Unknow error" });
     }
   }
 }
