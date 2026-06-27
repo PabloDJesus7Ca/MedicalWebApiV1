@@ -14,6 +14,15 @@ const options = {
         url: `http://localhost:${config.PORT}/api`,
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
   },
 
   apis: ["./src/routes/*.ts", "./src/modules/**/*.routes.ts"],
