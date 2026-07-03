@@ -11,6 +11,8 @@ const routes: Router = Router();
  *     summary: Chat que habla con la IA
  *     tags:
  *       - Ai
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
