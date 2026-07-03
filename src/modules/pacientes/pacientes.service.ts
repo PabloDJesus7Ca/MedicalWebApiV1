@@ -1,6 +1,18 @@
 import { prisma } from "../../configurations/lib/prisma";
 import { CreateLaboratorioDto, CreatePacienteDto, UpdatePacienteDto } from "./pacientes.dto";
 
+// Select seguro del doctor (nunca exponer password)
+const doctorInclude = {
+  creadoPor: {
+    select: {
+      id: true,
+      nombre: true,
+      email: true,
+      rol: true,
+    },
+  },
+} as const;
+
 export class PacientesService {
   static async createPaciente(data: CreatePacienteDto, creadoPorId: number) {
     const existe = await prisma.paciente.findUnique({
@@ -19,6 +31,7 @@ export class PacientesService {
         documento: data.documento,
         creadoPorId,
       },
+      include: doctorInclude,
     });
   }
 
@@ -34,12 +47,16 @@ export class PacientesService {
             },
           }
         : {}),
+      include: doctorInclude,
       orderBy: { createdAt: "desc" },
     });
   }
 
   static async getPacienteById(id: number) {
-    const paciente = await prisma.paciente.findUnique({ where: { id } });
+    const paciente = await prisma.paciente.findUnique({
+      where: { id },
+      include: doctorInclude,
+    });
 
     if (!paciente) {
       throw new Error("Paciente no encontrado.");
@@ -55,7 +72,11 @@ export class PacientesService {
       throw new Error("Paciente no encontrado.");
     }
 
-    return await prisma.paciente.update({ where: { id }, data });
+    return await prisma.paciente.update({
+      where: { id },
+      data,
+      include: doctorInclude,
+    });
   }
 
   static async deletePaciente(id: number) {
@@ -89,6 +110,7 @@ export class PacientesService {
     const paciente = await prisma.paciente.findUnique({
       where: { id: pacienteId },
       include: {
+        ...doctorInclude,
         laboratorios: { orderBy: { fecha: "desc" } },
         consultas: { orderBy: { createdAt: "desc" } },
       },
