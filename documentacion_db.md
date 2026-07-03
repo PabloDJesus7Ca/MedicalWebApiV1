@@ -309,10 +309,3 @@ Se instaló la librería @types/jsonwebtoken para evitar errores del compilador.
 
 
 
-- **Sprint 0 (Actual - Entregable 1):** Diseño e implementación de base de datos, Docker, configuraciones de variables, inicialización de datos de prueba (seed) y esqueleto de directorios modulares.
-- **Sprint 1:** Autenticación de usuarios por JWT y CRUD de Pacientes.
-- **Sprint 2:** Lógica e integración con la API de Google Gemini 2.5.
-- **Sprint 3:** Trazabilidad, logs de auditoría e historial clínico completo de consultas.
-- **Sprint 4:** Métricas administrativas, control de versiones del prompt y gestión de médicos.
-- **Sprint 5:** Suite de pruebas con Jest y verificación de seguridad con Helmet/Rate Limiting.
-- **Sprint 6:** Pruebas finales de QA, optimización de queries y despliegue a Railway/Render.

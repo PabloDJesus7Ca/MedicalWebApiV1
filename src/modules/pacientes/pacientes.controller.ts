@@ -85,8 +85,6 @@ export class PacientesController {
     }
   }
 
-    
-  
   static async getExpediente(request: AuthRequest, response: Response) {
     try {
       const pacienteId = Number(request.params["id"]);
