@@ -8,6 +8,7 @@ const router: Router = Router();
  * /auth/login:
  *   post:
  *     summary: Inicia sesión de un usuario existente
+ *     description: Retorna un token JWT válido tras un inicio de sesión exitoso. Este token debe incluirse en la cabecera `Authorization` con el formato `Bearer <token>` para autenticar las peticiones a los endpoints protegidos.
  *     tags:
  *       - Auth
  *     requestBody:
@@ -62,6 +63,7 @@ router.post("/login", AuthController.loginOfUserFromController);
  * /auth/register:
  *   post:
  *     summary: Registra un nuevo usuario en el sistema
+ *     description: Registra una nueva cuenta de usuario (médico o administrador). Una vez creado el usuario, se debe llamar al endpoint `/auth/login` con las credenciales registradas para obtener el token JWT necesario para realizar peticiones autenticadas.
  *     tags:
  *       - Auth
  *     requestBody:
