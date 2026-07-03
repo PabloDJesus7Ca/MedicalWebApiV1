@@ -5,9 +5,11 @@ export class AuthController {
   // TODO: Implementar controlador de login (RF-01, RF-02)
   static async loginOfUserFromController(request: Request, response: Response) {
     try {
-      const token = await AuthService.CheckLoginUserFromService(request.body);
+      const { token, id } = await AuthService.CheckLoginUserFromService(request.body);
 
-      return response.status(200).json({ message: "Haz Iniciado Session Correctamente", token });
+      return response
+        .status(200)
+        .json({ message: "Haz Iniciado Session Correctamente", token, id });
     } catch (error: unknown) {
       if (error instanceof Error) {
         return response.status(404).json({ message: error.message });
