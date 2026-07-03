@@ -1,11 +1,10 @@
 import { prisma } from "../../../src/configurations/lib/prisma";
 import { CreateUserDto } from "./auth.models.user";
 export class AuthRepository {
-  static async LoginAuth(email: string, password: string) {
+  static async LoginAuth(email: string) {
     return await prisma.user.findUniqueOrThrow({
       where: {
         email,
-        password,
       },
     });
   }

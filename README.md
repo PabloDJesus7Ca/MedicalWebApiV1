@@ -185,7 +185,7 @@ http://localhost:3003/api-docs
 5. Haz clic en **Execute**.
 6. Revisa la respuesta generada por la API.
 
-### Ejemplo
+### Ejemplo 1: Consulta de IA
 
 Endpoint:
 
@@ -206,6 +206,33 @@ Response:
 ```json
 {
   "response": "Los síntomas más comunes de la diabetes incluyen..."
+}
+```
+
+### Ejemplo 2: Login de Usuario (Retorna ID y Token JWT)
+
+Endpoint:
+
+```http
+POST /api/auth/login
+```
+
+Request:
+
+```json
+{
+  "email": "doctor@hospital.com",
+  "password": "MiPassword123"
+}
+```
+
+Response:
+
+```json
+{
+  "message": "Haz Iniciado Session Correctamente",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "id": 1
 }
 ```
 

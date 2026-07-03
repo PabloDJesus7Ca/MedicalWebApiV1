@@ -29,9 +29,8 @@ const router: Router = Router();
  *                 type: string
  *                 format: password
  *                 example: MiPassword123
- *     responses:
  *       200:
- *         description: Sesión iniciada correctamente, devuelve el token JWT
+ *         description: Sesión iniciada correctamente, devuelve el token JWT y el ID de usuario
  *         content:
  *           application/json:
  *             schema:
@@ -43,6 +42,9 @@ const router: Router = Router();
  *                 token:
  *                   type: string
  *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+ *                 id:
+ *                   type: integer
+ *                   example: 1
  *       404:
  *         description: Email o contraseña incorrectos
  *         content:
