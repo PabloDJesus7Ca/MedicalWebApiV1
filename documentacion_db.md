@@ -190,7 +190,7 @@ Para cumplir los tiempos de respuesta exigidos en los requisitos de rendimiento,
 
 ## 7. Variables de Entorno (`.env.example`)
 
-El archivo [.env.example](file:///c:/Users/marielys%20j/medical-ai-backend/.env.example) sirve para que cualquier desarrollador sepa qué variables requiere configurar en su propio archivo local de credenciales `.env`:
+El archivo [.env.example] sirve para que cualquier desarrollador sepa qué variables requiere configurar en su propio archivo local de credenciales `.env`:
 
 - `DATABASE_URL`: URL de conexión a la DB PostgreSQL.
 - `JWT_SECRET`: Llave secreta para autenticación con tokens JWT.
@@ -254,7 +254,7 @@ Se implementaron 7 métodos que interactúan directamente con Prisma (Base de da
 - listPacientes: Implementa un sistema de búsqueda insensible a mayúsculas (busca por nombre o documento).
 - getPacienteById / updatePaciente / deletePaciente: Operaciones estándar con validación de existencia.
 - addLaboratorio: Registra pruebas de laboratorio asociadas a un paciente.
-  \*getExpedienteCompleto: Query compleja que trae al paciente junto con todo su historial de laboratorios y consultas ordenadas por fecha.
+- getExpedienteCompleto: Query compleja que trae al paciente junto con todo su historial de laboratorios y consultas ordenadas por fecha.
 
 ### 3. Controladores
 
@@ -318,6 +318,4 @@ Se modificó el endpoint `POST /api/auth/login` para que retorne el campo `id` d
 - **Sprint 4:** Métricas administrativas, control de versiones del prompt y gestión de médicos.
 - **Sprint 5:** Suite de pruebas con Jest y verificación de seguridad con Helmet/Rate Limiting.
 - **Sprint 6:** Pruebas finales de QA, optimización de queries y despliegue a Railway/Render.
-
-
 
