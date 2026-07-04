@@ -190,7 +190,7 @@ Para cumplir los tiempos de respuesta exigidos en los requisitos de rendimiento,
 
 ## 7. Variables de Entorno (`.env.example`)
 
-El archivo [.env.example](file:///c:/Users/marielys%20j/medical-ai-backend/.env.example) sirve para que cualquier desarrollador sepa qué variables requiere configurar en su propio archivo local de credenciales `.env`:
+El archivo [.env.example] sirve para que cualquier desarrollador sepa qué variables requiere configurar en su propio archivo local de credenciales `.env`:
 
 - `DATABASE_URL`: URL de conexión a la DB PostgreSQL.
 - `JWT_SECRET`: Llave secreta para autenticación con tokens JWT.
@@ -223,17 +223,19 @@ El archivo [.env.example](file:///c:/Users/marielys%20j/medical-ai-backend/.env.
 
 ---
 
-#  Sprint 1: Autenticación de usuarios por JWT y CRUD de Pacientes. DONE #
+# Sprint 1: Autenticación de usuarios por JWT y CRUD de Pacientes. DONE
 
 Resumen del Sprint: Módulo de Pacientes  
 Este documento detalla todos los cambios y nuevas características implementadas para el Módulo de Pacientes durante este Sprint.
 
-## Objetivo Cumplido ##
+## Objetivo Cumplido
+
 Se implementó por completo el CRUD de gestión de pacientes, la integración de resultados de laboratorio y la generación del expediente clínico completo. Todo el código fue tipado fuertemente con TypeScript, protegido con JWT y documentado en Swagger.
 
-## Archivos Creados / Modificados ##
+## Archivos Creados / Modificados
 
-### 1. DTOs de Validación ###
+### 1. DTOs de Validación
+
 pacientes.dto.ts
 
 Se crearon las interfaces estrictas para asegurar que los datos enviados por el cliente sean correctos antes de tocar la base de datos:
@@ -242,32 +244,35 @@ CreatePacienteDto
 UpdatePacienteDto
 CreateLaboratorioDto
 
-### 2. Lógica de Negocio (Service) ###
+### 2. Lógica de Negocio (Service)
+
 pacientes.service.ts
 
 Se implementaron 7 métodos que interactúan directamente con Prisma (Base de datos):
 
-* createPaciente: Valida que el documento de identidad no exista previamente.
-* listPacientes: Implementa un sistema de búsqueda insensible a mayúsculas (busca por nombre o documento).
-* getPacienteById / updatePaciente / deletePaciente: Operaciones estándar con validación de existencia.
-* addLaboratorio: Registra pruebas de laboratorio asociadas a un paciente.
-*getExpedienteCompleto: Query compleja que trae al paciente junto con todo su historial de laboratorios y consultas ordenadas por fecha.
+- createPaciente: Valida que el documento de identidad no exista previamente.
+- listPacientes: Implementa un sistema de búsqueda insensible a mayúsculas (busca por nombre o documento).
+- getPacienteById / updatePaciente / deletePaciente: Operaciones estándar con validación de existencia.
+- addLaboratorio: Registra pruebas de laboratorio asociadas a un paciente.
+- getExpedienteCompleto: Query compleja que trae al paciente junto con todo su historial de laboratorios y consultas ordenadas por fecha.
 
-### 3. Controladores ###
+### 3. Controladores
 
 pacientes.controller.ts
 
 Se enrutaron las peticiones HTTP hacia el servicio. Se incluyó un bloque try/catch riguroso en todos los métodos para atrapar errores y devolver los status codes correctos (200, 201, 400, 401, 404 y 500).
 
-## 4. Rutas, Seguridad y Documentación ##
+## 4. Rutas, Seguridad y Documentación
+
 pacientes.routes.ts
 
 Se definieron los 7 endpoints requeridos.
 
-* Cada ruta está protegida por el authMiddleware (requiere un Bearer Token válido para ser consumida).
-* Se redactó documentación JSDoc para Swagger (@swagger) en cada ruta, especificando parámetros, cuerpos de petición de ejemplo y respuestas esperadas.
+- Cada ruta está protegida por el authMiddleware (requiere un Bearer Token válido para ser consumida).
+- Se redactó documentación JSDoc para Swagger (@swagger) en cada ruta, especificando parámetros, cuerpos de petición de ejemplo y respuestas esperadas.
 
-### 5. Configuraciones Globales Modificadas ###
+### 5. Configuraciones Globales Modificadas
+
 A. Archivo index.ts
 Se agregó el router de pacientes en el prefijo oficial: app.use("/api/pacientes", routesPacientes);
 Se agregó el dominio de la documentación (http://localhost:3006) a la lista blanca de CORS para que Swagger UI no sea bloqueado.
@@ -276,28 +281,36 @@ Se configuró el componente de seguridad securitySchemes: { bearerAuth: { type: 
 C. Middlewares y Dependencias
 Se corrigieron los tipos de retorno estrictos en auth.middleware.ts para cumplir con las reglas del linter.
 Se instaló la librería @types/jsonwebtoken para evitar errores del compilador.
+D. Módulo de Autenticación (Login)
+Se modificó el endpoint `POST /api/auth/login` para que retorne el campo `id` del usuario autenticado junto con el token JWT. Esto implicó:
 
-### Pruebas Realizadas ###
+- Actualizar la firma del método `CheckLoginUserFromService` en `auth.service.ts` y la interfaz `LoginResponseDto` en `auth.types.user.ts`.
+- Modificar el controlador `AuthController.loginOfUserFromController` en `auth.controller.ts` para extraer y retornar dicho `id` en el cuerpo JSON de la respuesta.
+- Documentar este nuevo comportamiento con la propiedad `id` (integer) en la especificación OpenAPI/Swagger de `auth.routes.ts`.
 
-* Compilación y Linteo: Se ejecutó npx tsc --noEmit y npm run format. El proyecto compila con cero (0) errores.
-* Registro y Login: Se probó el registro de un nuevo Doctor y la obtención exitosa del JWT Token.
-* Flujo Protegido: Se enviaron peticiones a /api/pacientes sin token para validar el rechazo (401 Unauthorized).
-* Flujo de Pacientes: Se inyectó el Token en Swagger y se probó la creación exitosa de un paciente (201 Created).
+### Pruebas Realizadas
 
-
-
-
+- Compilación y Linteo: Se ejecutó npx tsc --noEmit y npm run format. El proyecto compila con cero (0) errores.
+- Registro y Login: Se probó el registro de un nuevo Doctor y la obtención exitosa del JWT Token.
+- Flujo Protegido: Se enviaron peticiones a /api/pacientes sin token para validar el rechazo (401 Unauthorized).
+- Flujo de Pacientes: Se inyectó el Token en Swagger y se probó la creación exitosa de un paciente (201 Created).
 
 ---
 
 # Roadmap Técnico del Backend (Sprints)
+
 ---
 
-### [ DONE ] ###
-- **Sprint 0** Diseño e implementación de base de datos, Docker, configuraciones de variables, inicialización de datos de prueba (seed) y esqueleto de directorios modulares. 
+### [ DONE ]
+
+- **Sprint 0 (Actual - Entregable 1):** Diseño e implementación de base de datos, Docker, configuraciones de variables, inicialización de datos de prueba (seed) y esqueleto de directorios modulares.
+
 ---
-### [ DONE ] ###
- - **Sprint 1 (Actual - Entregable)::** Autenticación de usuarios por JWT y CRUD de Pacientes. 
+
+### [ DONE ]
+
+- **Sprint 1:** Autenticación de usuarios por JWT y CRUD de Pacientes.
+
 ---
 
 - **Sprint 2:** Lógica e integración con la API de Google Gemini 2.5.
@@ -305,6 +318,4 @@ Se instaló la librería @types/jsonwebtoken para evitar errores del compilador.
 - **Sprint 4:** Métricas administrativas, control de versiones del prompt y gestión de médicos.
 - **Sprint 5:** Suite de pruebas con Jest y verificación de seguridad con Helmet/Rate Limiting.
 - **Sprint 6:** Pruebas finales de QA, optimización de queries y despliegue a Railway/Render.
-
-
 

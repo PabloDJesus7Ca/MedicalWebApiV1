@@ -1,7 +1,6 @@
 import { prisma } from "../../configurations/lib/prisma";
 import { CreateLaboratorioDto, CreatePacienteDto, UpdatePacienteDto } from "./pacientes.dto";
 
-// Select seguro del doctor (nunca exponer password)
 const doctorInclude = {
   creadoPor: {
     select: {
