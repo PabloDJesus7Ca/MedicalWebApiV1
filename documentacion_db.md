@@ -288,17 +288,16 @@ Se instaló la librería @types/jsonwebtoken para evitar errores del compilador.
 
 
 
-
 ---
 
 # Roadmap Técnico del Backend (Sprints)
 ---
 
 ### [ DONE ] ###
-- **Sprint 0 (Actual - Entregable 1):** Diseño e implementación de base de datos, Docker, configuraciones de variables, inicialización de datos de prueba (seed) y esqueleto de directorios modulares. 
+- **Sprint 0** Diseño e implementación de base de datos, Docker, configuraciones de variables, inicialización de datos de prueba (seed) y esqueleto de directorios modulares. 
 ---
 ### [ DONE ] ###
- - **Sprint 1:** Autenticación de usuarios por JWT y CRUD de Pacientes. 
+ - **Sprint 1 (Actual - Entregable)::** Autenticación de usuarios por JWT y CRUD de Pacientes. 
 ---
 
 - **Sprint 2:** Lógica e integración con la API de Google Gemini 2.5.
