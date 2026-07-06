@@ -75,7 +75,17 @@ export class PacientesController {
   static async addLaboratorio(request: AuthRequest, response: Response) {
     try {
       const pacienteId = Number(request.params["id"]);
-      const laboratorio = await PacientesService.addLaboratorio(pacienteId, request.body);
+      const { descripcion, resultado } = request.body;
+
+      if (!descripcion || typeof descripcion !== "string") {
+        return response.status(400).json({ message: "El campo 'descripcion' es requerido." });
+      }
+
+      if (!resultado || typeof resultado !== "string") {
+        return response.status(400).json({ message: "El campo 'resultado' es requerido." });
+      }
+
+      const laboratorio = await PacientesService.addLaboratorio(pacienteId, { descripcion, resultado });
       return response.status(201).json({ laboratorio });
     } catch (error: unknown) {
       if (error instanceof Error) {
