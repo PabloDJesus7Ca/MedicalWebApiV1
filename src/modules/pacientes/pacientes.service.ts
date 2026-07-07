@@ -13,6 +13,17 @@ const doctorInclude = {
   },
 } as const;
 
+const doctorInclude = {
+  creadoPor: {
+    select: {
+      id: true,
+      nombre: true,
+      email: true,
+      rol: true,
+    },
+  },
+} as const;
+
 export class PacientesService {
   static async createPaciente(data: CreatePacienteDto, creadoPorId: number) {
     const existe = await prisma.paciente.findUnique({
