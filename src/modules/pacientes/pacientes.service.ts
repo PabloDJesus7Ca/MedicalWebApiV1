@@ -1,5 +1,6 @@
 import { prisma } from "../../configurations/lib/prisma";
 import { CreateLaboratorioDto, CreatePacienteDto, UpdatePacienteDto } from "./pacientes.dto";
+import { logAudit } from "../../Shared/utils/audit.helper";
 
 const doctorInclude = {
   creadoPor: {
@@ -64,18 +65,28 @@ export class PacientesService {
     return paciente;
   }
 
-  static async updatePaciente(id: number, data: UpdatePacienteDto) {
+  static async updatePaciente(id: number, data: UpdatePacienteDto, userId: number) {
     const paciente = await prisma.paciente.findUnique({ where: { id } });
 
     if (!paciente) {
       throw new Error("Paciente no encontrado.");
     }
 
-    return await prisma.paciente.update({
+    const pacienteActualizado = await prisma.paciente.update({
       where: { id },
       data,
       include: doctorInclude,
     });
+
+    await logAudit(
+      userId,
+      "MODIFICACION_PACIENTE",
+      "Paciente",
+      id,
+      `Campos actualizados: ${Object.keys(data).join(", ") || "sin cambios"}`
+    );
+
+    return pacienteActualizado;
   }
 
   static async deletePaciente(id: number) {
