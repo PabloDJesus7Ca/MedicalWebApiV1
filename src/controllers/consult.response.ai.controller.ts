@@ -1,9 +1,11 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { formatPrompt } from "../Shared/utils/formatPrompt";
 import main from "../Agent/model.ai.responses";
+import { AuthRequest } from "../Shared/middlewares/auth.middleware";
+import { logAudit } from "../Shared/utils/audit.helper";
 
 export class UserControllerAi {
-  static async Chat(request: Request, response: Response) {
+  static async Chat(request: AuthRequest, response: Response) {
     const { pregunta } = request.body;
 
     let promptInput = "";
@@ -26,6 +28,11 @@ export class UserControllerAi {
       const prompt = formatPrompt(promptInput);
       const consulta = await main(prompt);
       const cleanedResponse = formatPrompt(consulta ?? "");
+
+      const doctorId = request.user?.id;
+      if (doctorId) {
+        await logAudit(doctorId, "CONSULTA_IA", "Consulta", undefined, "Consulta al asistente de IA vía /api/chat");
+      }
 
       return response.status(200).json(cleanedResponse);
     } catch (error: unknown) {

@@ -297,7 +297,94 @@ Se modificó el endpoint `POST /api/auth/login` para que retorne el campo `id` d
 
 ---
 
-# Roadmap Técnico del Backend (Sprints)
+# Sprint 3 (parcial): Historial de Consultas, AuditLog y CRUD de Usuarios (Admin)
+
+**Tickets cubiertos:** SCRUM-31, SCRUM-33, SCRUM-35
+
+Este documento detalla los cambios de estos 3 tickets, con foco especial en dejar claro **el contrato exacto de cada endpoint** (qué campos manda el cliente, qué campos devuelve el servidor) para que el equipo de Frontend pueda conectar sus pantallas sin adivinar.
+
+## Objetivo Cumplido
+
+- `GET /api/consulta/historial`: historial de consultas de IA del médico autenticado, con filtros por paciente y por rango de fechas.
+- Sistema de auditoría (`AuditLog`) conectado a 3 acciones: login, consulta a la IA y modificación de paciente.
+- CRUD de usuarios para administradores: `POST`, `GET` (lista y por id) y `PUT` en `/api/admin/usuarios`, restringido a rol `ADMIN`.
+
+## Archivos Creados / Modificados
+
+- `Shared/utils/audit.helper.ts`: ahora escribe de verdad en la tabla `AuditLog` (antes solo hacía `console.log`).
+- `modules/consulta/`: `consulta.controller.ts`, `consulta.service.ts`, `consulta.routes.ts`, `consulta.dto.ts` (nuevo).
+- `modules/admin/`: `admin.controller.ts`, `admin.service.ts`, `admin.routes.ts`, `admin.dto.ts` (nuevo).
+- `modules/auth/auth.service.ts`: se agregó el registro de auditoría tras un login exitoso.
+- `modules/pacientes/pacientes.controller.ts` y `pacientes.service.ts`: se agregó el registro de auditoría en `updatePaciente`, y por eso `updatePaciente` ahora recibe también el `userId` de quien hace el cambio.
+- `controllers/consult.response.ai.controller.ts`: se agregó el registro de auditoría tras una respuesta exitosa de la IA.
+- `index.ts`: se montaron las rutas `/api/consulta` y `/api/admin/usuarios`, que existían en el código pero nunca se habían registrado en la app.
+
+## Contratos de API (para el equipo de Frontend)
+
+### `GET /api/consulta/historial`
+
+Requiere `Authorization: Bearer <token>` de un usuario con rol `DOCTOR`.
+
+Query params opcionales: `pacienteId` (número), `fechaInicio` (fecha ISO), `fechaFin` (fecha ISO).
+
+Respuesta `200`:
+```json
+{
+  "historial": [
+    {
+      "id": 1,
+      "doctorId": 3,
+      "pacienteId": 5,
+      "input": "Paciente con fiebre y tos por 3 días...",
+      "output": "{ \"diagnosticos\": [...], \"nivelUrgencia\": \"Media\" }",
+      "nivelRiesgo": "Medio",
+      "modelo": "gemini-2.5-flash",
+      "promptVersion": "v1.0.0",
+      "tokens": 512,
+      "createdAt": "2026-07-01T14:32:00.000Z",
+      "paciente": { "id": 5, "nombre": "Juan Pérez", "documento": "40212345" }
+    }
+  ]
+}
+```
+
+### `POST` / `GET` / `PUT` `/api/admin/usuarios`
+
+Requieren `Authorization: Bearer <token>` de un usuario con rol `ADMIN` (un `DOCTOR` recibe `403`).
+
+`POST /api/admin/usuarios` — body: `{ "nombre", "email", "password", "rol": "ADMIN"|"DOCTOR" }` → `201` con:
+```json
+{ "usuario": { "id": 4, "nombre": "Dr. Juan Pérez", "email": "juan@hospital.com", "rol": "DOCTOR", "activo": true, "creadoEn": "2026-07-05T10:00:00.000Z" } }
+```
+
+`GET /api/admin/usuarios` → `{ "usuarios": [ {...igual que arriba...}, ... ] }`
+
+`PUT /api/admin/usuarios/{id}` — body opcional: `{ "nombre"?, "email"?, "rol"?, "activo"? }`. Para **desactivar** un usuario: `{ "activo": false }`. → `200` con el usuario actualizado. Ninguna respuesta de este módulo incluye jamás el campo `password`.
+
+## ⚠️ Nota para el equipo de Frontend: desajuste de contrato detectado
+
+Al revisar `doctor/historial/index.tsx` y `admin/medicos/index.tsx` (rama `develop`), notamos que ambas pantallas usan datos mock (`CONSULTAS`, `MEDICOS`) con tipos que **no coinciden** con lo que el backend real devuelve. Esto es normal en un proyecto en paralelo, pero hay que resolverlo antes de conectar:
+
+**En `historial`:**
+- `fecha`, `hora`, `iniciales` → se pueden derivar en el frontend a partir de `createdAt` y `paciente.nombre`. No requieren cambio de backend.
+- `diagnostico` (frase corta) → el backend devuelve `output`, el texto/JSON completo de la IA, no una frase corta. Hay que decidir si el frontend parsea ese JSON o si se pide un campo resumen adicional.
+- `tipoDx` (categoría fija: Hypertension, Diabetes...) → **no existe** en el modelo `Consulta` y no se puede derivar de forma confiable del texto libre. Requiere decisión de equipo.
+- `medico`, `medicoColor` → no aplica: este endpoint siempre es el historial del médico autenticado (ya lo tienen guardado en `authentication-store`).
+- `status: COMPLETED|PENDING|URGENT` → esto es un estado de flujo de trabajo. El backend tiene `nivelRiesgo: Alto|Medio|Bajo`, que es un **concepto clínico distinto** (riesgo, no estado de proceso). No renombrar uno por otro sin discutirlo — una consulta de IA no queda "pendiente", se genera y persiste de inmediato.
+
+**En `admin/medicos`:**
+- `iniciales` → derivable de `nombre` en frontend.
+- `estado: ACTIVO|INACTIVO|PENDIENTE` → el backend solo tiene `activo: boolean` (2 estados). No existe un tercer estado "pendiente" en el flujo actual (un admin crea el usuario y ya queda activo).
+- `especialidad`, `licencia`, `telefono`, `pacientes` (conteo), `consultasHoy` (conteo), `calificacion` → **no existen en el modelo `User`** de `schema.prisma`. Si el equipo los necesita, hay que agregarlos al esquema (columna del DBA) antes de que el backend pueda devolverlos — no es algo que el frontend pueda resolver por su cuenta.
+
+## Pruebas Realizadas
+
+- `npx tsc --noEmit`: 0 errores nuevos (los únicos pendientes son preexistentes y no relacionados a este sprint).
+- `npm run lint`: 0 errores nuevos introducidos.
+- Verificado en Swagger (`/api-docs`) con usuario admin del seed: login → token → `POST/GET/PUT /admin/usuarios` funcionando y devolviendo `403` correctamente cuando se prueba con un token de rol `DOCTOR`.
+- `GET /consulta/historial` verificado con filtros `pacienteId`, `fechaInicio`, `fechaFin` contra datos insertados manualmente vía Prisma Studio (el endpoint que crea consultas reales, `POST /api/consulta`, aún no está implementado — corresponde a otro ticket).
+
+---
 
 ---
 
@@ -313,8 +400,13 @@ Se modificó el endpoint `POST /api/auth/login` para que retorne el campo `id` d
 
 ---
 
+### [ PARCIAL ]
+
+- **Sprint 3 (parcial):** Historial de consultas (`GET /api/consulta/historial`), sistema de AuditLog (login, consulta IA, modificación de paciente) y CRUD de usuarios para Admin (`SCRUM-31`, `SCRUM-33`, `SCRUM-35`). Pendiente de este sprint: `POST /api/consulta` (creación de la consulta diagnóstica con Gemini) — ver sección arriba.
+
+---
+
 - **Sprint 2:** Lógica e integración con la API de Google Gemini 2.5.
-- **Sprint 3:** Trazabilidad, logs de auditoría e historial clínico completo de consultas.
 - **Sprint 4:** Métricas administrativas, control de versiones del prompt y gestión de médicos.
 - **Sprint 5:** Suite de pruebas con Jest y verificación de seguridad con Helmet/Rate Limiting.
 - **Sprint 6:** Pruebas finales de QA, optimización de queries y despliegue a Railway/Render.
