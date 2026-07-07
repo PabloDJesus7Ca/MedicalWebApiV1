@@ -51,9 +51,7 @@ export class PacientesController {
       const id = Number(request.params["id"]);
       const userId = request.user?.id;
       if (!userId) return response.status(401).json({ message: "No autenticado." });
-      if (!userId) {
-        return response.status(401).json({ message: "No autenticado." });
-      }
+
       const paciente = await PacientesService.updatePaciente(id, request.body, userId);
       return response.status(200).json({ paciente });
     } catch (error: unknown) {

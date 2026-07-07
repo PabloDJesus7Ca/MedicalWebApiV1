@@ -39,7 +39,6 @@ app.use("/api/pacientes", routesPacientes);
 app.use("/api/usuarios", routesUsuarios);
 app.use("/api/admin", routesAdmin);
 app.use("/api/consulta", routesConsulta);
-app.use("/api/admin/usuarios", routesAdmin);
 
 app.get("/health", (_, response) => {
   response.status(200).json({ message: "Server On ago" });
