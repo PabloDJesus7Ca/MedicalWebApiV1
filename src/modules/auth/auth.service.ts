@@ -46,7 +46,7 @@ export class AuthService {
       rol: userExist.rol,
     });
 
-    await logAudit(userExist.id, 'LOGIN', 'User', userExist.id, `Inicio de sesión exitoso`);
+    await logAudit(userExist.id, "LOGIN", "User", userExist.id, `Inicio de sesión de ${userExist.email}`);
 
     return { token, id: userExist.id };
     // TODO: Implementar lógica de validación de credenciales y firma de JWT (RF-01, RF-02)
