@@ -1,5 +1,6 @@
 import { prisma } from "../../configurations/lib/prisma";
 import { CreateLaboratorioDto, CreatePacienteDto, UpdatePacienteDto } from "./pacientes.dto";
+import { logAudit } from "../../Shared/utils/audit.helper";
 
 const doctorInclude = {
   creadoPor: {
@@ -22,7 +23,7 @@ export class PacientesService {
       throw new Error("Ya existe un paciente registrado con ese número de documento.");
     }
 
-    return await prisma.paciente.create({
+    const paciente = await prisma.paciente.create({
       data: {
         nombre: data.nombre,
         edad: data.edad,
@@ -32,6 +33,10 @@ export class PacientesService {
       },
       include: doctorInclude,
     });
+
+    await logAudit(creadoPorId, 'CREATE', 'Paciente', paciente.id, `Paciente ${data.nombre} creado`);
+
+    return paciente;
   }
 
   static async listPacientes(search?: string) {
@@ -64,21 +69,25 @@ export class PacientesService {
     return paciente;
   }
 
-  static async updatePaciente(id: number, data: UpdatePacienteDto) {
+  static async updatePaciente(id: number, data: UpdatePacienteDto, userId: number) {
     const paciente = await prisma.paciente.findUnique({ where: { id } });
 
     if (!paciente) {
       throw new Error("Paciente no encontrado.");
     }
 
-    return await prisma.paciente.update({
+    const updated = await prisma.paciente.update({
       where: { id },
       data,
       include: doctorInclude,
     });
+
+    await logAudit(userId, 'UPDATE', 'Paciente', id, `Paciente ${paciente.nombre} actualizado`);
+
+    return updated;
   }
 
-  static async deletePaciente(id: number) {
+  static async deletePaciente(id: number, userId: number) {
     const paciente = await prisma.paciente.findUnique({ where: { id } });
 
     if (!paciente) {
@@ -86,6 +95,9 @@ export class PacientesService {
     }
 
     await prisma.paciente.delete({ where: { id } });
+
+    await logAudit(userId, 'DELETE', 'Paciente', id, `Paciente ${paciente.nombre} eliminado`);
+
     return { message: "Paciente eliminado correctamente." };
   }
 

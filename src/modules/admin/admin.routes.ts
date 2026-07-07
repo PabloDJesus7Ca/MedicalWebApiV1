@@ -1,9 +1,10 @@
 import { Router } from "express";
+import { AdminController } from "./admin.controller";
+import { authMiddleware, checkRoleMiddleware } from "../../Shared/middlewares/auth.middleware";
+import { Rol } from "../../generated/prisma";
 
 const router: Router = Router();
 
-// TODO: Implementar rutas de administración de usuarios, logs y configuración de IA (RF-22 a RF-28)
-// router.get("/usuarios", AdminController.listUsers);
-// router.get("/logs", AdminController.listLogs);
+router.get("/logs", authMiddleware, checkRoleMiddleware(Rol.ADMIN), AdminController.listLogs);
 
 export default router;

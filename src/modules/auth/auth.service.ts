@@ -5,6 +5,7 @@ import { CheckTypeLoginDto, CreateUserDto } from "./auth.models.user";
 import { ResponseCreateUserDto, LoginResponseDto } from "./auth.types.user";
 import { ShowRealResponseToUser } from "./auth.fn.model";
 import { SingToken } from "../../Shared/utils/jwt.helper";
+import { logAudit } from "../../Shared/utils/audit.helper";
 
 export class AuthService {
   static async createNewUserFromService(data: CreateUserDto): Promise<ResponseCreateUserDto> {
@@ -20,6 +21,8 @@ export class AuthService {
       password: await hashdPassword(data.password),
       rol: data.rol,
     });
+
+    await logAudit(createdUser.id, 'CREATE', 'User', createdUser.id, `Usuario ${data.email} registrado con rol ${data.rol}`);
 
     const user = ShowRealResponseToUser(createdUser);
     return user;
@@ -42,7 +45,10 @@ export class AuthService {
       email: userExist.email,
       rol: userExist.rol,
     });
+
+    await logAudit(userExist.id, 'LOGIN', 'User', userExist.id, `Inicio de sesión exitoso`);
+
     return { token, id: userExist.id };
+    // TODO: Implementar lógica de validación de credenciales y firma de JWT (RF-01, RF-02)
   }
-  // TODO: Implementar lógica de validación de credenciales y firma de JWT (RF-01, RF-02)
 }

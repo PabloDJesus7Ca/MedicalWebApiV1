@@ -1,10 +1,35 @@
-// TODO: Helper para registrar logs de auditoría inmutables en la base de datos (BE-16)
+import { prisma } from "../../configurations/lib/prisma";
+
+export type AuditAction =
+  | 'CREATE'
+  | 'READ'
+  | 'UPDATE'
+  | 'DELETE'
+  | 'LOGIN'
+  | 'LOGOUT'
+  | 'EXPORT'
+  | 'ERROR'
+  | 'AUTH_FAILED'
+  | 'CONSULTA_AI'
+
 export const logAudit = async (
   userId: number,
-  accion: string,
+  accion: AuditAction,
   entidad: string,
-  _entidadId?: number,
-  _detalle?: string
-) => {
-  console.log(`[AuditLog] Usuario ${userId} ejecutó ${accion} en ${entidad}`);
+  entidadId?: number,
+  detalle?: string
+): Promise<void> => {
+  try {
+    await prisma.auditLog.create({
+      data: {
+        userId,
+        accion,
+        entidad,
+        entidadId: entidadId ?? null,
+        detalle: detalle ?? '',
+      },
+    });
+  } catch (error) {
+    console.error('[AuditLog] Error al registrar auditoría:', error);
+  }
 };
