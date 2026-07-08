@@ -13,17 +13,6 @@ const doctorInclude = {
   },
 } as const;
 
-const doctorInclude = {
-  creadoPor: {
-    select: {
-      id: true,
-      nombre: true,
-      email: true,
-      rol: true,
-    },
-  },
-} as const;
-
 export class PacientesService {
   static async createPaciente(data: CreatePacienteDto, creadoPorId: number) {
     const existe = await prisma.paciente.findUnique({
@@ -34,7 +23,7 @@ export class PacientesService {
       throw new Error("Ya existe un paciente registrado con ese número de documento.");
     }
 
-    return await prisma.paciente.create({
+    const paciente = await prisma.paciente.create({
       data: {
         nombre: data.nombre,
         edad: data.edad,
@@ -44,6 +33,10 @@ export class PacientesService {
       },
       include: doctorInclude,
     });
+
+    await logAudit(creadoPorId, 'CREATE', 'Paciente', paciente.id, `Paciente ${data.nombre} creado`);
+
+    return paciente;
   }
 
   static async listPacientes(search?: string) {
@@ -83,24 +76,18 @@ export class PacientesService {
       throw new Error("Paciente no encontrado.");
     }
 
-    const pacienteActualizado = await prisma.paciente.update({
+    const updated = await prisma.paciente.update({
       where: { id },
       data,
       include: doctorInclude,
     });
 
-    await logAudit(
-      userId,
-      "MODIFICACION_PACIENTE",
-      "Paciente",
-      id,
-      `Campos actualizados: ${Object.keys(data).join(", ") || "sin cambios"}`
-    );
+    await logAudit(userId, 'UPDATE', 'Paciente', id, `Paciente ${paciente.nombre} actualizado`);
 
-    return pacienteActualizado;
+    return updated;
   }
 
-  static async deletePaciente(id: number) {
+  static async deletePaciente(id: number, userId: number) {
     const paciente = await prisma.paciente.findUnique({ where: { id } });
 
     if (!paciente) {
@@ -108,6 +95,9 @@ export class PacientesService {
     }
 
     await prisma.paciente.delete({ where: { id } });
+
+    await logAudit(userId, 'DELETE', 'Paciente', id, `Paciente ${paciente.nombre} eliminado`);
+
     return { message: "Paciente eliminado correctamente." };
   }
 

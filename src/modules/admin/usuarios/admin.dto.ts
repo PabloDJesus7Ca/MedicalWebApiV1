@@ -1,4 +1,4 @@
-import { Rol } from "../../generated/prisma";
+import { Rol } from "../../../generated/prisma";
 
 export interface CreateUsuarioAdminDto {
   nombre: string;

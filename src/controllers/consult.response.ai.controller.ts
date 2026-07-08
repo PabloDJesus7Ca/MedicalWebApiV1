@@ -31,7 +31,7 @@ export class UserControllerAi {
 
       const doctorId = request.user?.id;
       if (doctorId) {
-        await logAudit(doctorId, "CONSULTA_IA", "Consulta", undefined, "Consulta al asistente de IA vía /api/chat");
+        await logAudit(doctorId, 'CONSULTA_AI', "Consulta", undefined, "Consulta al asistente de IA vía /api/chat");
       }
 
       return response.status(200).json(cleanedResponse);

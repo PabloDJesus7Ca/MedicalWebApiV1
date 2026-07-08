@@ -1,8 +1,7 @@
-import { prisma } from "../../configurations/lib/prisma";
-import { hashdPassword } from "../../Shared/utils/password.helper.user";
+import { prisma } from "../../../configurations/lib/prisma";
+import { hashdPassword } from "../../../Shared/utils/password.helper.user";
 import { CreateUsuarioAdminDto, UpdateUsuarioAdminDto } from "./admin.dto";
 
-// Nunca se selecciona `password` para que jamás salga del backend hacia el cliente.
 const usuarioSelect = {
   id: true,
   nombre: true,
@@ -12,7 +11,9 @@ const usuarioSelect = {
   creadoEn: true,
 } as const;
 
-export class AdminService {
+export class AdminUsuariosService {
+    // Nunca se selecciona `password` para que jamás salga del backend hacia el cliente.
+
   // TODO: Lógica para leer logs de auditoría inmutables y actualizar configuración de IA (RF-24 a RF-28).
 
   /** Crea un nuevo usuario (médico o administrador). Solo accesible por un ADMIN. */

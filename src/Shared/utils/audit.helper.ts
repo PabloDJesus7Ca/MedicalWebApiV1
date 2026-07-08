@@ -1,5 +1,17 @@
 import { prisma } from "../../configurations/lib/prisma";
 
+export type AuditAction =
+  | 'CREATE'
+  | 'READ'
+  | 'UPDATE'
+  | 'DELETE'
+  | 'LOGIN'
+  | 'LOGOUT'
+  | 'EXPORT'
+  | 'ERROR'
+  | 'AUTH_FAILED'
+  | 'CONSULTA_AI'
+
 /**
  * Registra una acción de auditoría de forma inmutable en la tabla AuditLog.
  *
@@ -15,7 +27,7 @@ import { prisma } from "../../configurations/lib/prisma";
  */
 export const logAudit = async (
   userId: number,
-  accion: string,
+  accion: AuditAction,
   entidad: string,
   entidadId?: number,
   detalle?: string
@@ -27,10 +39,10 @@ export const logAudit = async (
         accion,
         entidad,
         entidadId: entidadId ?? null,
-        detalle: detalle ?? "",
+        detalle: detalle ?? '',
       },
     });
-  } catch (error: unknown) {
-    console.error(`[AuditLog] No se pudo registrar la acción "${accion}" sobre "${entidad}":`, error);
+  } catch (error) {
+    console.error('[AuditLog] Error al registrar auditoría:', error);
   }
 };

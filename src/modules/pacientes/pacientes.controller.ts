@@ -50,9 +50,8 @@ export class PacientesController {
     try {
       const id = Number(request.params["id"]);
       const userId = request.user?.id;
-      if (!userId) {
-        return response.status(401).json({ message: "No autenticado." });
-      }
+      if (!userId) return response.status(401).json({ message: "No autenticado." });
+
       const paciente = await PacientesService.updatePaciente(id, request.body, userId);
       return response.status(200).json({ paciente });
     } catch (error: unknown) {
@@ -66,7 +65,9 @@ export class PacientesController {
   static async delete(request: AuthRequest, response: Response) {
     try {
       const id = Number(request.params["id"]);
-      const result = await PacientesService.deletePaciente(id);
+      const userId = request.user?.id;
+      if (!userId) return response.status(401).json({ message: "No autenticado." });
+      const result = await PacientesService.deletePaciente(id, userId);
       return response.status(200).json(result);
     } catch (error: unknown) {
       if (error instanceof Error) {

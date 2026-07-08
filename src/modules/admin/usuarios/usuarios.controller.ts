@@ -1,12 +1,11 @@
-// TODO: Implementar controladores de logs de auditoría y métricas (RF-25 a RF-28)
 import { Response } from "express";
-import { AuthRequest } from "../../Shared/middlewares/auth.middleware";
-import { AdminService } from "./admin.service";
+import { AuthRequest } from "../../../Shared/middlewares/auth.middleware";
+import { AdminUsuariosService } from "./usuarios.service";
 
-export class AdminController {
+export class AdminUsuarioController {
   static async crearUsuario(request: AuthRequest, response: Response) {
     try {
-      const usuario = await AdminService.crearUsuario(request.body);
+      const usuario = await AdminUsuariosService.crearUsuario(request.body);
       return response.status(201).json({ usuario });
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -18,7 +17,7 @@ export class AdminController {
 
   static async listarUsuarios(_request: AuthRequest, response: Response) {
     try {
-      const usuarios = await AdminService.listarUsuarios();
+      const usuarios = await AdminUsuariosService.listarUsuarios();
       return response.status(200).json({ usuarios });
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -34,7 +33,7 @@ export class AdminController {
       if (isNaN(id)) {
         return response.status(400).json({ message: "ID de usuario inválido." });
       }
-      const usuario = await AdminService.obtenerUsuarioPorId(id);
+      const usuario = await AdminUsuariosService.obtenerUsuarioPorId(id);
       return response.status(200).json({ usuario });
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -50,7 +49,7 @@ export class AdminController {
       if (isNaN(id)) {
         return response.status(400).json({ message: "ID de usuario inválido." });
       }
-      const usuario = await AdminService.actualizarUsuario(id, request.body);
+      const usuario = await AdminUsuariosService.actualizarUsuario(id, request.body);
       return response.status(200).json({ usuario });
     } catch (error: unknown) {
       if (error instanceof Error) {
