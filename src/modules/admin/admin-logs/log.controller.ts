@@ -20,6 +20,16 @@ export class LogsController {
     } catch (error) {
       console.error("Error fetching logs:", error);
       return res.status(500).json({ message: "Error fetching logs" });
-    }}
-// TODO: Implementar controladores de logs de auditoría y métricas (RF-25 a RF-28)
+    }
+  }
+
+  public static async getMetricas(_req: AuthRequest, res: Response) {
+    try {
+      const metricas = await LogsService.getMetricas();
+      return res.json(metricas);
+    } catch (error) {
+      console.error("Error fetching metrics:", error);
+      return res.status(500).json({ message: "Error fetching metrics" });
+    }
+  }
 }

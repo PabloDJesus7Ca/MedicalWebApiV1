@@ -15,7 +15,27 @@ interface PaginatedResult<T> {
   totalPages: number;
 }
 
+export interface Metricas {
+  totalConsultas: number;
+  tokensConsumidos: number;
+  usuariosActivos: number;
+}
+
 export class LogsService {
+  public static async getMetricas(): Promise<Metricas> {
+    const [totalConsultas, tokensAgg, usuariosActivos] = await Promise.all([
+      prisma.consulta.count(),
+      prisma.consulta.aggregate({ _sum: { tokens: true } }),
+      prisma.user.count({ where: { activo: true } }),
+    ]);
+
+    return {
+      totalConsultas,
+      tokensConsumidos: tokensAgg._sum.tokens ?? 0,
+      usuariosActivos,
+    };
+  }
+
   public static async getLogsPaged(
     page: number,
     pageSize: number,

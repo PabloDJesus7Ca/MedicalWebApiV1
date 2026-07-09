@@ -103,4 +103,40 @@ const router: Router = Router();
  */
 router.get("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), LogsController.listLogs);
 
+/**
+ * @swagger
+ * /admin/logs/metricas:
+ *   get:
+ *     summary: Obtiene métricas generales del sistema
+ *     description: Retorna el total de consultas realizadas, tokens consumidos por el modelo IA y cantidad de usuarios activos. Solo accesible por usuarios con rol ADMIN.
+ *     tags:
+ *       - Admin
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Métricas del sistema
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalConsultas:
+ *                   type: integer
+ *                   example: 1250
+ *                 tokensConsumidos:
+ *                   type: integer
+ *                   example: 584200
+ *                 usuariosActivos:
+ *                   type: integer
+ *                   example: 24
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: No autorizado (se requiere rol ADMIN)
+ *       500:
+ *         description: Error al obtener métricas
+ */
+router.get("/metricas", authMiddleware, checkRoleMiddleware(Rol.ADMIN), LogsController.getMetricas);
+
 export default router;
