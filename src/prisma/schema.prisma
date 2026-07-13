@@ -59,16 +59,32 @@ model Consulta {
   nivelRiesgo   String   // Nivel de riesgo consolidado (Alto, Medio, Bajo)
   modelo        String   // Nombre del modelo IA utilizado
   promptVersion String   // Versión del prompt del sistema utilizada
-  tokens        Int      // Cantidad de tokens consumidos en la consulta
-  createdAt     DateTime @default(now())
+  tokens        Int       // Cantidad de tokens consumidos en la consulta
+  createdAt     DateTime  @default(now())
+  completed     DateTime?
 
   // Relaciones
-  doctor   User     @relation("DoctorConsulta", fields: [doctorId], references: [id])
-  paciente Paciente @relation(fields: [pacienteId], references: [id])
+  doctor         User             @relation("DoctorConsulta", fields: [doctorId], references: [id])
+  paciente       Paciente         @relation(fields: [pacienteId], references: [id])
+  chatbotAnswers ChatbotAnswer[]
 
   @@index([doctorId])
   @@index([pacienteId])
   @@index([createdAt])
+}
+
+model ChatbotAnswer {
+  id          Int      @id @default(autoincrement())
+  consultaId  Int
+  answer      String   // Respuesta generada por el chatbot
+  createdAt   DateTime @default(now())
+  question    String   // Pregunta o mensaje del usuario que generó la respuesta
+  tokens      Int      @default(0) // Tokens consumidos en la pregunta
+
+  // Relaciones
+  consulta Consulta @relation(fields: [consultaId], references: [id])
+
+  @@index([consultaId])
 }
 
 /// Almacena los resultados de laboratorio clínicos asociados a un paciente.
@@ -110,7 +126,7 @@ model PromptVersion {
 /// Registro inmutable de acciones realizadas en el sistema (trazabilidad y auditoría).
 model AuditLog {
   id         Int      @id @default(autoincrement())
-  userId     Int
+  userId     Int?
   accion     String
   entidad    String
   entidadId  Int?
@@ -118,7 +134,7 @@ model AuditLog {
   createdAt  DateTime @default(now())
 
   // Relaciones
-  user User @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])

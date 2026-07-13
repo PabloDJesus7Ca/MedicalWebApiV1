@@ -1,6 +1,7 @@
 import { prisma } from "../../../configurations/lib/prisma";
 import { hashdPassword } from "../../../Shared/utils/password.helper.user";
 import { CreateUsuarioAdminDto, UpdateUsuarioAdminDto } from "./admin.dto";
+import { logAudit } from "../../../Shared/utils/audit.helper";
 
 const usuarioSelect = {
   id: true,
@@ -17,13 +18,13 @@ export class AdminUsuariosService {
   // TODO: Lógica para leer logs de auditoría inmutables y actualizar configuración de IA (RF-24 a RF-28).
 
   /** Crea un nuevo usuario (médico o administrador). Solo accesible por un ADMIN. */
-  static async crearUsuario(data: CreateUsuarioAdminDto) {
+  static async crearUsuario(data: CreateUsuarioAdminDto, adminUserId: number) {
     const existente = await prisma.user.findUnique({ where: { email: data.email } });
     if (existente) {
       throw new Error("Ya existe un usuario registrado con ese email.");
     }
 
-    return await prisma.user.create({
+    const usuario = await prisma.user.create({
       data: {
         nombre: data.nombre,
         email: data.email,
@@ -32,6 +33,10 @@ export class AdminUsuariosService {
       },
       select: usuarioSelect,
     });
+
+    await logAudit(adminUserId, 'CREATE', 'User', usuario.id, `Usuario ${data.email} creado con rol ${data.rol}`);
+
+    return usuario;
   }
 
   /** Lista todos los usuarios del sistema, sin exponer la contraseña. */
@@ -55,7 +60,7 @@ export class AdminUsuariosService {
    * Edita los datos de un usuario. También se usa para desactivarlo:
    * basta con enviar `{ activo: false }` en el body.
    */
-  static async actualizarUsuario(id: number, data: UpdateUsuarioAdminDto) {
+  static async actualizarUsuario(id: number, data: UpdateUsuarioAdminDto, adminUserId: number) {
     const usuario = await prisma.user.findUnique({ where: { id } });
     if (!usuario) {
       throw new Error("Usuario no encontrado.");
@@ -68,10 +73,15 @@ export class AdminUsuariosService {
       }
     }
 
-    return await prisma.user.update({
+    const updated = await prisma.user.update({
       where: { id },
       data,
       select: usuarioSelect,
     });
+
+    const cambios = Object.entries(data).map(([k, v]) => `${k}:${v}`).join(', ');
+    await logAudit(adminUserId, 'UPDATE', 'User', id, `Usuario #${id} actualizado: ${cambios}`);
+
+    return updated;
   }
 }

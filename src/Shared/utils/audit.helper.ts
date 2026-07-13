@@ -26,7 +26,7 @@ export type AuditAction =
  * @param detalle   Texto descriptivo adicional para trazabilidad humana.
  */
 export const logAudit = async (
-  userId: number,
+  userId: number | undefined,
   accion: AuditAction,
   entidad: string,
   entidadId?: number,
@@ -35,7 +35,7 @@ export const logAudit = async (
   try {
     await prisma.auditLog.create({
       data: {
-        userId,
+        userId: userId ?? null,
         accion,
         entidad,
         entidadId: entidadId ?? null,

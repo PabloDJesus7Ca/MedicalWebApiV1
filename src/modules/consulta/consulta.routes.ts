@@ -5,8 +5,85 @@ import { Rol } from "../../generated/prisma";
 
 const router: Router = Router();
 
-// TODO: Implementar ruta de creación de consulta diagnóstica (RF-13 a RF-18)
-// router.post("/", authMiddleware, checkRoleMiddleware(Rol.DOCTOR), ConsultaController.consultar);
+/**
+ * @swagger
+ * /consulta:
+ *   post:
+ *     summary: Crea una nueva consulta diagnóstica con IA
+ *     description: Envía los síntomas del paciente al modelo de IA, registra la consulta de forma inmutable y retorna el diagnóstico generado. Solo accesible por usuarios con rol DOCTOR.
+ *     tags:
+ *       - Consulta
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - pacienteId
+ *               - input
+ *             properties:
+ *               pacienteId:
+ *                 type: integer
+ *                 description: ID del paciente asociado
+ *                 example: 1
+ *               input:
+ *                 type: string
+ *                 description: Síntomas y datos clínicos del paciente
+ *                 example: "Paciente de 45 años con dolor torácico agudo, disnea y palpitaciones desde hace 2 horas."
+ *     responses:
+ *       201:
+ *         description: Consulta creada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 doctorId:
+ *                   type: integer
+ *                 pacienteId:
+ *                   type: integer
+ *                 input:
+ *                   type: string
+ *                 output:
+ *                   type: string
+ *                 nivelRiesgo:
+ *                   type: string
+ *                   enum: [Alto, Medio, Bajo]
+ *                 modelo:
+ *                   type: string
+ *                 promptVersion:
+ *                   type: string
+ *                 tokens:
+ *                   type: integer
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 paciente:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     nombre:
+ *                       type: string
+ *                     documento:
+ *                       type: string
+ *       400:
+ *         description: Datos inválidos (pacienteId no numérico, input vacío)
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: El usuario autenticado no tiene rol DOCTOR
+ *       404:
+ *         description: Paciente no encontrado
+ *       500:
+ *         description: Error al procesar la consulta con la IA
+ */
+router.post("/", authMiddleware, checkRoleMiddleware(Rol.DOCTOR), ConsultaController.consultar);
 
 /**
  * @swagger
@@ -39,15 +116,27 @@ const router: Router = Router();
  *           format: date
  *         description: Fecha máxima (inclusive) en formato ISO, ej. 2026-07-31.
  *         example: "2026-07-31"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número de página
+ *       - in: query
+ *         name: pageSize
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Cantidad de registros por página
  *     responses:
  *       200:
- *         description: Historial de consultas del médico autenticado
+ *         description: Historial de consultas del médico autenticado (paginado)
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 historial:
+ *                 data:
  *                   type: array
  *                   items:
  *                     type: object
@@ -65,6 +154,23 @@ const router: Router = Router();
  *                       createdAt:
  *                         type: string
  *                         format: date-time
+ *                       paciente:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                           nombre:
+ *                             type: string
+ *                           documento:
+ *                             type: string
+ *                 total:
+ *                   type: integer
+ *                 page:
+ *                   type: integer
+ *                 pageSize:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
  *       400:
  *         description: Filtros inválidos (pacienteId no numérico o fechas mal formadas)
  *       401:
@@ -77,6 +183,167 @@ router.get(
   authMiddleware,
   checkRoleMiddleware(Rol.DOCTOR),
   ConsultaController.obtenerHistorial
+);
+
+/**
+ * @swagger
+ * /consulta/{id}:
+ *   get:
+ *     summary: Obtiene una consulta por su ID
+ *     description: Retorna los detalles completos de una consulta diagnóstica, incluyendo datos del paciente y del doctor.
+ *     tags:
+ *       - Consulta
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la consulta
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Datos de la consulta
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 doctorId:
+ *                   type: integer
+ *                 pacienteId:
+ *                   type: integer
+ *                 input:
+ *                   type: string
+ *                 output:
+ *                   type: string
+ *                 nivelRiesgo:
+ *                   type: string
+ *                 modelo:
+ *                   type: string
+ *                 promptVersion:
+ *                   type: string
+ *                 tokens:
+ *                   type: integer
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 paciente:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     nombre:
+ *                       type: string
+ *                     documento:
+ *                       type: string
+ *                 doctor:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     nombre:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *       400:
+ *         description: ID inválido
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: El usuario autenticado no tiene rol DOCTOR
+ *       404:
+ *         description: Consulta no encontrada
+ */
+/**
+ * @swagger
+ * /consulta/{id}:
+ *   put:
+ *     summary: Actualiza los síntomas o diagnóstico de una consulta
+ *     description: Permite editar el input (síntomas) y/o output (diagnóstico) de una consulta existente.
+ *     tags:
+ *       - Consulta
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la consulta
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               input:
+ *                 type: string
+ *                 description: Nuevos síntomas y datos clínicos
+ *                 example: "Paciente de 50 años con cefalea intensa y visión borrosa."
+ *               output:
+ *                 type: string
+ *                 description: Nuevo diagnóstico
+ *     responses:
+ *       200:
+ *         description: Consulta actualizada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 input:
+ *                   type: string
+ *                 output:
+ *                   type: string
+ *                 paciente:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     nombre:
+ *                       type: string
+ *                     documento:
+ *                       type: string
+ *                 doctor:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     nombre:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *       400:
+ *         description: ID inválido o body vacío
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: El usuario autenticado no tiene rol DOCTOR
+ *       404:
+ *         description: Consulta no encontrada
+ */
+router.put(
+  "/:id",
+  authMiddleware,
+  checkRoleMiddleware(Rol.DOCTOR),
+  ConsultaController.actualizarConsulta
+);
+
+router.get(
+  "/:id",
+  authMiddleware,
+  checkRoleMiddleware(Rol.DOCTOR),
+  ConsultaController.obtenerConsulta
 );
 
 export default router;
