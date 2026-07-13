@@ -79,6 +79,7 @@ model ChatbotAnswer {
   answer      String   // Respuesta generada por el chatbot
   createdAt   DateTime @default(now())
   question    String   // Pregunta o mensaje del usuario que generó la respuesta
+  tokens      Int      @default(0) // Tokens consumidos en la pregunta
 
   // Relaciones
   consulta Consulta @relation(fields: [consultaId], references: [id])

@@ -40,17 +40,24 @@ export class ChatbotService {
     });
 
     const answer = response.text ?? "";
+    const tokens = response.usageMetadata?.totalTokenCount ?? 0;
 
     const chatbotAnswer = await prisma.chatbotAnswer.create({
       data: {
         consultaId: dto.consultaId,
         question: dto.question,
         answer,
+        tokens,
       },
     });
 
-    await logAudit(doctorId, 'CONSULTA_AI', 'ChatbotAnswer', chatbotAnswer.id, `Pregunta sobre consulta #${dto.consultaId}`);
+    await prisma.consulta.update({
+      where: { id: dto.consultaId },
+      data: { tokens: { increment: tokens } },
+    });
 
-    return { answer };
+    await logAudit(doctorId, 'CONSULTA_AI', 'ChatbotAnswer', chatbotAnswer.id, `Pregunta sobre consulta #${dto.consultaId} (${tokens} tokens)`);
+
+    return { answer, tokens };
   }
 }
