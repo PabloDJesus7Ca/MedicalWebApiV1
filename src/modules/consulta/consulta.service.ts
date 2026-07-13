@@ -9,7 +9,7 @@ const ai = new GoogleGenAI({ apiKey: apiKeys.NAMEAPYKEY });
 export class ConsultaService {
   static async crearConsulta(doctorId: number, dto: CreateConsultaDto) {
     const config = await prisma.config.findFirst();
-    const modelName = config?.modelName ?? "gemini-2.5-flash";
+    const modelName = config?.modelName ?? "gemini-3-flash-preview";
     const temperatura = config?.temperatura ?? 0.1;
     const maxTokens = config?.maxTokens ?? 4000;
     const systemPrompt = config?.systemPrompt ?? "";
@@ -101,6 +101,9 @@ export class ConsultaService {
         },
         doctor: {
           select: { id: true, nombre: true, email: true },
+        },
+        chatbotAnswers: {
+          orderBy: { createdAt: "asc" },
         },
       },
     });
