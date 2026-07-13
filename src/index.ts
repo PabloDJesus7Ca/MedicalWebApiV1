@@ -10,6 +10,7 @@ import routesAuth from "./modules/auth/auth.routes";
 import routesPacientes from "./modules/pacientes/pacientes.routes";
 import routesUsuarios from "./modules/usuarios/usuarios.routes";
 import routesConsulta from "./modules/consulta/consulta.routes";
+import routesChatbot from "./modules/chatbot/chatbot.routes";
 import routesAdmin from "./modules/admin/admin.routes";
 import { errorHandler } from "./Shared/middlewares/errorHandlerGlobal";
 const app: Express = express();
@@ -39,6 +40,7 @@ app.use("/api/pacientes", routesPacientes);
 app.use("/api/usuarios", routesUsuarios);
 app.use("/api/admin", routesAdmin);
 app.use("/api/consulta", routesConsulta);
+app.use("/api/chatbot", routesChatbot);
 
 app.get("/health", (_, response) => {
   response.status(200).json({ message: "Server On ago" });

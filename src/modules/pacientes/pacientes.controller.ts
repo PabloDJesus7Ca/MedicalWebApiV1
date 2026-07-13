@@ -80,6 +80,8 @@ export class PacientesController {
   static async addLaboratorio(request: AuthRequest, response: Response) {
     try {
       const pacienteId = Number(request.params["id"]);
+      const userId = request.user?.id;
+      if (!userId) return response.status(401).json({ message: "No autenticado." });
       const { descripcion, resultado } = request.body;
 
       if (!descripcion || typeof descripcion !== "string") {
@@ -90,7 +92,7 @@ export class PacientesController {
         return response.status(400).json({ message: "El campo 'resultado' es requerido." });
       }
 
-      const laboratorio = await PacientesService.addLaboratorio(pacienteId, { descripcion, resultado });
+      const laboratorio = await PacientesService.addLaboratorio(pacienteId, { descripcion, resultado }, userId);
       return response.status(201).json({ laboratorio });
     } catch (error: unknown) {
       if (error instanceof Error) {

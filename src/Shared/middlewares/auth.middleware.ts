@@ -17,7 +17,7 @@ export const authMiddleware = (
   const authHeader = request.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    logAudit(0, 'AUTH_FAILED', 'Auth', undefined, 'Token no proporcionado');
+    logAudit(undefined, 'AUTH_FAILED', 'Auth', undefined, 'Token no proporcionado');
     response.status(401).json({
       message: "Token No Porporcionado",
     });
@@ -26,7 +26,7 @@ export const authMiddleware = (
   const token = authHeader.split(" ")[1];
 
   if (!token) {
-    logAudit(0, 'AUTH_FAILED', 'Auth', undefined, 'Token vacío');
+    logAudit(undefined, 'AUTH_FAILED', 'Auth', undefined, 'Token vacío');
     response.status(401).json({ message: "Token no proporcionado" });
     return;
   }
@@ -36,7 +36,7 @@ export const authMiddleware = (
     request.user = payload;
     next();
   } catch (error) {
-    logAudit(0, 'AUTH_FAILED', 'Auth', undefined, 'Token inválido o expirado');
+    logAudit(undefined, 'AUTH_FAILED', 'Auth', undefined, 'Token inválido o expirado');
     response.status(401).json({ message: "Token inválido o expirado" });
   }
 };

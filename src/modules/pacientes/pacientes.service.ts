@@ -101,20 +101,24 @@ export class PacientesService {
     return { message: "Paciente eliminado correctamente." };
   }
 
-  static async addLaboratorio(pacienteId: number, data: CreateLaboratorioDto) {
+  static async addLaboratorio(pacienteId: number, data: CreateLaboratorioDto, userId: number) {
     const paciente = await prisma.paciente.findUnique({ where: { id: pacienteId } });
 
     if (!paciente) {
       throw new Error("Paciente no encontrado.");
     }
 
-    return await prisma.laboratorio.create({
+    const laboratorio = await prisma.laboratorio.create({
       data: {
         pacienteId,
         descripcion: data.descripcion,
         resultado: data.resultado,
       },
     });
+
+    await logAudit(userId, 'CREATE', 'Laboratorio', laboratorio.id, `Resultado de laboratorio para paciente #${pacienteId}`);
+
+    return laboratorio;
   }
 
   static async getExpedienteCompleto(pacienteId: number) {

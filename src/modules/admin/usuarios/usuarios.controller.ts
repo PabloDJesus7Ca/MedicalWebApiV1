@@ -5,7 +5,9 @@ import { AdminUsuariosService } from "./usuarios.service";
 export class AdminUsuarioController {
   static async crearUsuario(request: AuthRequest, response: Response) {
     try {
-      const usuario = await AdminUsuariosService.crearUsuario(request.body);
+      const adminUserId = request.user?.id;
+      if (!adminUserId) return response.status(401).json({ message: "No autenticado." });
+      const usuario = await AdminUsuariosService.crearUsuario(request.body, adminUserId);
       return response.status(201).json({ usuario });
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -45,11 +47,13 @@ export class AdminUsuarioController {
 
   static async actualizarUsuario(request: AuthRequest, response: Response) {
     try {
+      const adminUserId = request.user?.id;
+      if (!adminUserId) return response.status(401).json({ message: "No autenticado." });
       const id = Number(request.params["id"]);
       if (isNaN(id)) {
         return response.status(400).json({ message: "ID de usuario inválido." });
       }
-      const usuario = await AdminUsuariosService.actualizarUsuario(id, request.body);
+      const usuario = await AdminUsuariosService.actualizarUsuario(id, request.body, adminUserId);
       return response.status(200).json({ usuario });
     } catch (error: unknown) {
       if (error instanceof Error) {
