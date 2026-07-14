@@ -103,7 +103,7 @@ export class ConsultaController {
         return response.status(401).json({ message: "No autenticado." });
       }
 
-      const { pacienteId, fechaInicio, fechaFin, page, pageSize } = request.query;
+      const { pacienteId, fechaInicio, fechaFin, page, pageSize, all } = request.query;
 
       let pacienteIdNumber: number | undefined;
       if (typeof pacienteId === "string" && pacienteId.trim()) {
@@ -144,6 +144,7 @@ export class ConsultaController {
         ...(fechaFinDate !== undefined ? { fechaFin: fechaFinDate } : {}),
         page: pageNumber,
         pageSize: pageSizeNumber,
+        all: all === 'true',
       });
 
       return response.status(200).json(result);

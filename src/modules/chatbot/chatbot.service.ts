@@ -1,10 +1,7 @@
-import { GoogleGenAI, type GenerateContentConfig } from "@google/genai";
+import { ai, type GenerateContentConfig } from "../../Shared/utils/genai";
 import { prisma } from "../../configurations/lib/prisma";
-import { apiKeys } from "../../configurations/configs";
 import { AskQuestionDto } from "./chatbot.dto";
 import { logAudit } from "../../Shared/utils/audit.helper";
-
-const ai = new GoogleGenAI({ apiKey: apiKeys.NAMEAPYKEY });
 
 export class ChatbotService {
   static async askQuestion(doctorId: number, dto: AskQuestionDto) {
