@@ -90,7 +90,7 @@ router.post("/", authMiddleware, checkRoleMiddleware(Rol.DOCTOR), ConsultaContro
  * /consulta/historial:
  *   get:
  *     summary: Obtiene el historial de consultas de IA del médico autenticado
- *     description: Solo retorna las consultas cuyo médico coincide con el usuario autenticado. Admite filtros opcionales por paciente y por rango de fechas.
+ *     description: Retorna consultas. Por defecto solo las del médico autenticado. Si se pasa all=true, retorna todas las del sistema (para doctores con acceso general). Admite filtros opcionales por paciente, rango de fechas y paginación.
  *     tags:
  *       - Consulta
  *     security:
@@ -128,6 +128,13 @@ router.post("/", authMiddleware, checkRoleMiddleware(Rol.DOCTOR), ConsultaContro
  *           type: integer
  *           default: 10
  *         description: Cantidad de registros por página
+ *       - in: query
+ *         name: all
+ *         schema:
+ *           type: string
+ *           enum: [true, false]
+ *         description: Si es "true", omite el filtro por doctor y retorna todas las consultas del sistema
+ *         example: "true"
  *     responses:
  *       200:
  *         description: Historial de consultas del médico autenticado (paginado)

@@ -4,6 +4,7 @@ export interface HistorialFiltersDto {
   fechaFin?: Date;
   page?: number;
   pageSize?: number;
+  all?: boolean;
 }
 
 export interface CreateConsultaDto {

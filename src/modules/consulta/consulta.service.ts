@@ -1,15 +1,12 @@
-import { GoogleGenAI, type GenerateContentConfig } from "@google/genai";
+import { ai, type GenerateContentConfig } from "../../Shared/utils/genai";
 import { prisma } from "../../configurations/lib/prisma";
-import { apiKeys } from "../../configurations/configs";
 import { HistorialFiltersDto, CreateConsultaDto, UpdateConsultaDto } from "./consulta.dto";
 import { logAudit } from "../../Shared/utils/audit.helper";
-
-const ai = new GoogleGenAI({ apiKey: apiKeys.NAMEAPYKEY });
 
 export class ConsultaService {
   static async crearConsulta(doctorId: number, dto: CreateConsultaDto) {
     const config = await prisma.config.findFirst();
-    const modelName = config?.modelName ?? "gemini-2.5-flash";
+    const modelName = config?.modelName ?? "gemini-3-flash-preview";
     const temperatura = config?.temperatura ?? 0.1;
     const maxTokens = config?.maxTokens ?? 4000;
     const systemPrompt = config?.systemPrompt ?? "";
@@ -102,6 +99,9 @@ export class ConsultaService {
         doctor: {
           select: { id: true, nombre: true, email: true },
         },
+        chatbotAnswers: {
+          orderBy: { createdAt: "asc" },
+        },
       },
     });
 
@@ -125,7 +125,7 @@ export class ConsultaService {
     const skip = (page - 1) * pageSize;
 
     const where = {
-      doctorId,
+      ...(filtros.all ? {} : { doctorId }),
       ...(filtros.pacienteId ? { pacienteId: filtros.pacienteId } : {}),
       ...(filtros.fechaInicio || filtros.fechaFin
         ? {
@@ -145,6 +145,9 @@ export class ConsultaService {
         include: {
           paciente: {
             select: { id: true, nombre: true, documento: true },
+          },
+          doctor: {
+            select: { id: true, nombre: true, email: true },
           },
         },
         orderBy: { createdAt: "desc" },

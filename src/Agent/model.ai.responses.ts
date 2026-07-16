@@ -1,10 +1,7 @@
-import { GoogleGenAI } from "@google/genai";
-import { apiKeys } from "../configurations/configs";
+import { ai } from "../Shared/utils/genai";
 import { System } from "../configurations/constant.js";
 import dotenv from "dotenv";
 dotenv.config();
-
-const ai = new GoogleGenAI({ apiKey: apiKeys.NAMEAPYKEY });
 
 export default async function main(asking: string) {
   const response = await ai.models.generateContent({
