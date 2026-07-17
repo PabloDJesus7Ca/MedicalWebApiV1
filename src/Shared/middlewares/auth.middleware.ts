@@ -32,24 +32,29 @@ export const authMiddleware = (
   }
 
   try {
-    const payload = VeriyToken(token);
-    request.user = payload;
+    request.user = VeriyToken(token);
     next();
   } catch (error) {
     logAudit(undefined, 'AUTH_FAILED', 'Auth', undefined, 'Token inválido o expirado');
-    response.status(401).json({ message: "Token inválido o expirado" });
+    response.status(401).json({ message: "Token inválido o expirado" ,error});
   }
 };
 
 export const checkRoleMiddleware = (...allowedRoles: Rol[]) => {
   return (request: AuthRequest, response: Response, next: NextFunction): void => {
     if (!request.user) {
-      logAudit(0, 'AUTH_FAILED', 'Auth', undefined, 'No autenticado — checkRole');
+      logAudit(undefined, 'AUTH_FAILED', 'Auth', undefined, 'No autenticado — checkRole');
       response.status(401).json({ message: "No Autenticado" });
       return;
     }
     if (!allowedRoles.includes(request.user.rol as Rol)) {
-      logAudit(request.user.id, 'AUTH_FAILED', 'Auth', undefined, ` Rol ${request.user.rol} no autorizado para recurso`);
+      logAudit(
+        request.user.id,
+        'AUTH_FAILED',
+        'Auth',
+        undefined,
+        ` Rol ${request.user.rol} no autorizado para recurso`
+      );
       response.status(403).json({ message: "No tienes permiso para acceder a este recurso" });
       return;
     }

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { ConsultaController } from "./consulta.controller";
 import { authMiddleware, checkRoleMiddleware } from "../../Shared/middlewares/auth.middleware";
+import { ConsultaLimiter } from "../../Shared/middlewares/rateLimit.middleware";
 import { Rol } from "../../generated/prisma";
 
 const router: Router = Router();
@@ -10,7 +11,17 @@ const router: Router = Router();
  * /consulta:
  *   post:
  *     summary: Crea una nueva consulta diagnóstica con IA
- *     description: Envía los síntomas del paciente al modelo de IA, registra la consulta de forma inmutable y retorna el diagnóstico generado. Solo accesible por usuarios con rol DOCTOR.
+ *     description: |
+ *       **Cómo funciona:**
+ *       Este endpoint recibe los síntomas del paciente y consulta su historial clínico (consultas previas y laboratorios) en la base de datos. Luego envía toda esa información a la IA (Gemini) usando un System Prompt estructurado.
+ *
+ *       **Qué hace:**
+ *       Genera un análisis médico automatizado que incluye diagnósticos diferenciales ordenados por probabilidad, nivel de riesgo individual, justificaciones clínicas basadas en el historial, signos de alarma y recomendaciones. La API está protegida por un Rate Limiter (máx. 30 consultas por hora por usuario).
+ *
+ *       **Cómo probarlo:**
+ *       1. Autentícate en `/auth/login` y usa el JWT como Bearer Token.
+ *       2. Asegúrate de que el `pacienteId` exista (puedes crearlo en `/pacientes`).
+ *       3. Envía el payload con el ID del paciente y sus síntomas actuales.
  *     tags:
  *       - Consulta
  *     security:
@@ -32,10 +43,10 @@ const router: Router = Router();
  *               input:
  *                 type: string
  *                 description: Síntomas y datos clínicos del paciente
- *                 example: "Paciente de 45 años con dolor torácico agudo, disnea y palpitaciones desde hace 2 horas."
+ *                 example: "Paciente de 55 años acude con dolor opresivo en el pecho que se irradia hacia el brazo izquierdo, sudoración fría y mareos desde hace 45 minutos."
  *     responses:
  *       201:
- *         description: Consulta creada exitosamente
+ *         description: Consulta creada exitosamente. Retorna el análisis de la IA en formato JSON estructurado.
  *         content:
  *           application/json:
  *             schema:
@@ -50,7 +61,30 @@ const router: Router = Router();
  *                 input:
  *                   type: string
  *                 output:
- *                   type: string
+ *                   type: object
+ *                   description: JSON estructurado y limpio generado por la IA.
+ *                   properties:
+ *                     diagnosticos:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           enfermedad:
+ *                             type: string
+ *                           probabilidad:
+ *                             type: integer
+ *                           nivelRiesgo:
+ *                             type: string
+ *                           explicacion:
+ *                             type: string
+ *                     recomendaciones:
+ *                       type: string
+ *                     signosAlarma:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     nivelUrgencia:
+ *                       type: string
  *                 nivelRiesgo:
  *                   type: string
  *                   enum: [Alto, Medio, Bajo]
@@ -82,8 +116,16 @@ const router: Router = Router();
  *         description: Paciente no encontrado
  *       500:
  *         description: Error al procesar la consulta con la IA
+ *       429:
+ *         description: Demasiadas solicitudes (límite de 30 por hora superado)
  */
-router.post("/", authMiddleware, checkRoleMiddleware(Rol.DOCTOR), ConsultaController.consultar);
+router.post(
+  "/",
+  authMiddleware,
+  ConsultaLimiter,
+  checkRoleMiddleware(Rol.DOCTOR),
+  ConsultaController.consultar
+);
 
 /**
  * @swagger

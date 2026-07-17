@@ -2,6 +2,7 @@ import { ai, type GenerateContentConfig } from "../../Shared/utils/genai";
 import { prisma } from "../../configurations/lib/prisma";
 import { HistorialFiltersDto, CreateConsultaDto, UpdateConsultaDto } from "./consulta.dto";
 import { logAudit } from "../../Shared/utils/audit.helper";
+import { System } from "../../configurations/constant";
 
 export class ConsultaService {
   static async crearConsulta(doctorId: number, dto: CreateConsultaDto) {
@@ -9,15 +10,67 @@ export class ConsultaService {
     const modelName = config?.modelName ?? "gemini-3-flash-preview";
     const temperatura = config?.temperatura ?? 0.1;
     const maxTokens = config?.maxTokens ?? 4000;
-    const systemPrompt = config?.systemPrompt ?? "";
+    const systemPrompt = config?.systemPrompt ?? System;
 
     const promptVersion = await prisma.promptVersion.findFirst({ where: { activo: true } });
 
-    const payload = `Paciente ID: ${dto.pacienteId}\n\nSíntomas y datos clínicos:\n${dto.input}\n\n---\nEvalúa el nivel de riesgo del paciente (Alto, Medio o Bajo) y al final de tu respuesta incluye la línea exacta:\nNIVEL_RIESGO: [Alto|Medio|Bajo]`;
+    // PASO 1: Buscar historial médico del paciente para incluirlo en el prompt (RF-18)
+    const pacienteHistorial = await prisma.paciente.findUnique({
+      where: { id: dto.pacienteId },
+      include: {
+        consultas: {
+          orderBy: { createdAt: "desc" },
+          take: 5, // Limitar a las últimas 5 para no saturar el prompt
+          select: { createdAt: true, input: true, nivelRiesgo: true }, //No Traer outputs gigantes previos
+        },
+        laboratorios: {
+          orderBy: { fecha: "desc" },
+          take: 10,
+        },
+      },
+    });
+
+    let historialTexto = "Sin historial médico previo.";
+    if (pacienteHistorial) {
+      const consultasTxt =
+        pacienteHistorial.consultas.length > 0
+          ? pacienteHistorial.consultas
+              .map(
+                (c) =>
+                  `- Fecha: ${c.createdAt.toISOString().split("T")[0]}, Síntomas: ${c.input}, Riesgo anterior: ${c.nivelRiesgo}`
+              )
+              .join("\n")
+          : "Sin consultas previas.";
+
+      const labsTxt =
+        pacienteHistorial.laboratorios.length > 0
+          ? pacienteHistorial.laboratorios
+              .map(
+                (l) =>
+                  `- Fecha: ${l.fecha.toISOString().split("T")[0]}, Prueba: ${l.descripcion}, Resultado: ${l.resultado}`
+              )
+              .join("\n")
+          : "Sin laboratorios previos.";
+
+      historialTexto = `Consultas previas:\n${consultasTxt}\n\nLaboratorios previos:\n${labsTxt}`;
+    }
+
+    // PASO 2: Construir el payload (User Prompt) solo con la data.
+    // La estructura JSON y las reglas se definen en el systemPrompt.
+    const payload = `Paciente ID: ${dto.pacienteId}
+Síntomas y datos clínicos actuales:
+${dto.input}
+
+Contexto Médico e Historial Previo:
+${historialTexto}
+
+---
+Por favor, analiza esta información y genera tu respuesta basada en las instrucciones del sistema.`;
 
     const configPayload: Record<string, unknown> = {
       temperature: temperatura,
       maxOutputTokens: maxTokens,
+      responseMimeType: "application/json",
     };
     if (systemPrompt) {
       configPayload.systemInstruction = systemPrompt;
@@ -29,11 +82,28 @@ export class ConsultaService {
       config: configPayload as GenerateContentConfig,
     });
 
-    const output = response.text ?? "";
+
+    let rawOutput = response.text ?? "{}";
+    rawOutput = rawOutput
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    const output = rawOutput;
     let nivelRiesgo = "Bajo";
-    const match = output.match(/NIVEL_RIESGO:\s*(Alto|Medio|Bajo)/i);
-    if (match?.[1]) {
-      nivelRiesgo = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+
+    try {
+      const parsedOutput = JSON.parse(output);
+      // El System Prompt define "nivelUrgencia" en lugar de "nivelRiesgoGeneral"
+      if (parsedOutput.nivelUrgencia) {
+        nivelRiesgo = parsedOutput.nivelUrgencia;
+      }
+    } catch (e) {
+
+      const match = output.match(/"nivelUrgencia"\s*:\s*"(Alto|Medio|Bajo)"/i);
+      if (match?.[1]) {
+        nivelRiesgo = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
+      }
     }
 
     const tokens = response.usageMetadata?.totalTokenCount ?? 0;
@@ -56,7 +126,13 @@ export class ConsultaService {
       },
     });
 
-    await logAudit(doctorId, "CONSULTA_AI", "Consulta", consulta.id, `Consulta IA para paciente #${dto.pacienteId}`);
+    await logAudit(
+      doctorId,
+      "CONSULTA_AI",
+      "Consulta",
+      consulta.id,
+      `Consulta IA para paciente #${dto.pacienteId}`
+    );
 
     return consulta;
   }
@@ -84,7 +160,13 @@ export class ConsultaService {
       },
     });
 
-    await logAudit(doctorId, "UPDATE", "Consulta", consultaId, `Consulta #${consultaId} actualizada`);
+    await logAudit(
+      doctorId,
+      "UPDATE",
+      "Consulta",
+      consultaId,
+      `Consulta #${consultaId} actualizada`
+    );
 
     return updated;
   }

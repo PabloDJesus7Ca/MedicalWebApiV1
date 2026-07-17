@@ -23,11 +23,15 @@ export class ConsultaController {
       const { pacienteId, input } = request.body;
 
       if (!pacienteId || typeof pacienteId !== "number") {
-        return response.status(400).json({ message: "pacienteId es requerido y debe ser numérico." });
+        return response
+          .status(400)
+          .json({ message: "pacienteId es requerido y debe ser numérico." });
       }
 
       if (!input || typeof input !== "string" || !input.trim()) {
-        return response.status(400).json({ message: "input es requerido y debe ser un texto no vacío." });
+        return response
+          .status(400)
+          .json({ message: "input es requerido y debe ser un texto no vacío." });
       }
 
       const paciente = await prisma.paciente.findUnique({ where: { id: pacienteId } });
@@ -35,9 +39,23 @@ export class ConsultaController {
         return response.status(404).json({ message: "Paciente no encontrado." });
       }
 
-      const consulta = await ConsultaService.crearConsulta(doctorId, { pacienteId, input: input.trim() });
+      const consulta = await ConsultaService.crearConsulta(doctorId, {
+        pacienteId,
+        input: input.trim(),
+      });
 
-      return response.status(201).json(consulta);
+
+      let outputLimpio = consulta.output;
+      try {
+        outputLimpio = JSON.parse(consulta.output);
+      } catch (e) {
+        console.log('Error al Parsear Datos En La Consulta', e);
+      }
+
+      return response.status(201).json({
+        ...consulta,
+        output: outputLimpio,
+      });
     } catch (error: unknown) {
       if (error instanceof Error) {
         return response.status(500).json({ message: error.message });
@@ -60,10 +78,16 @@ export class ConsultaController {
 
       const { input, output, completed } = request.body;
       if (!input && !output && completed === undefined) {
-        return response.status(400).json({ message: "Debe enviar al menos 'input', 'output' o 'completed' para actualizar." });
+        return response.status(400).json({
+          message: "Debe enviar al menos 'input', 'output' o 'completed' para actualizar.",
+        });
       }
 
-      const consulta = await ConsultaService.updateConsulta(id, doctorId, { input, output, completed });
+      const consulta = await ConsultaService.updateConsulta(id, doctorId, {
+        input,
+        output,
+        completed,
+      });
       return response.status(200).json(consulta);
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -125,7 +149,9 @@ export class ConsultaController {
       if (typeof pageSize === "string" && pageSize.trim()) {
         pageSizeNumber = Number(pageSize);
         if (isNaN(pageSizeNumber) || pageSizeNumber < 1) {
-          return response.status(400).json({ message: "pageSize debe ser un número entero positivo." });
+          return response
+            .status(400)
+            .json({ message: "pageSize debe ser un número entero positivo." });
         }
       }
 
@@ -144,7 +170,7 @@ export class ConsultaController {
         ...(fechaFinDate !== undefined ? { fechaFin: fechaFinDate } : {}),
         page: pageNumber,
         pageSize: pageSizeNumber,
-        all: all === 'true',
+        all: all === "true",
       });
 
       return response.status(200).json(result);
