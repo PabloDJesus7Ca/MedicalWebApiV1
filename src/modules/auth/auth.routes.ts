@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "./auth.controller";
+import { LoginLimiter } from "../../Shared/middlewares/rateLimit.middleware";
 const router: Router = Router();
 
 // TODO: Implementar endpoint POST /api/auth/login (RF-01, RF-02)
@@ -8,7 +9,11 @@ const router: Router = Router();
  * /auth/login:
  *   post:
  *     summary: Inicia sesión de un usuario existente
- *     description: Retorna un token JWT válido tras un inicio de sesión exitoso. Este token debe incluirse en la cabecera `Authorization` con el formato `Bearer <token>` para autenticar las peticiones a los endpoints protegidos.
+ *     description: |
+ *       Retorna un token JWT válido tras un inicio de sesión exitoso. Este token debe incluirse en la cabecera `Authorization` con el formato `Bearer <token>` para autenticar las peticiones a los endpoints protegidos.
+ *
+ *       **Seguridad (Rate Limiting):**
+ *       Este endpoint está protegido contra ataques de fuerza bruta. El sistema bloqueará automáticamente las peticiones de una misma dirección IP si se superan los **5 intentos fallidos o exitosos en un periodo de 15 minutos**, retornando un error `429 Too Many Requests`.
  *     tags:
  *       - Auth
  *     requestBody:
@@ -29,6 +34,7 @@ const router: Router = Router();
  *                 type: string
  *                 format: password
  *                 example: MiPassword123
+ *     responses:
  *       200:
  *         description: Sesión iniciada correctamente, devuelve el token JWT y el ID de usuario
  *         content:
@@ -45,7 +51,7 @@ const router: Router = Router();
  *                 id:
  *                   type: integer
  *                   example: 1
- *       404:
+ *       400:
  *         description: Email o contraseña incorrectos
  *         content:
  *           application/json:
@@ -57,8 +63,29 @@ const router: Router = Router();
  *                   example: Esta Contrasena Es Incorrecta
  *       500:
  *         description: Error desconocido del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Error al iniciar sesion
+ *                 error:
+ *                   type: string
+ *                   example: Error details
+ *                 code:
+ *                   type: string
+ *                   example: ERR_500
+ *       429:
+ *         description: Demasiadas solicitudes (límite de 5 intentos por 15 minutos superado)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
+ *               example: Estamos experimentando muchas solicitudes desde esta IP, por favor intente más tarde.
  */
-router.post("/login", AuthController.loginOfUserFromController);
+router.post("/login", LoginLimiter, AuthController.loginOfUserFromController);
 
 /**
  * @swagger

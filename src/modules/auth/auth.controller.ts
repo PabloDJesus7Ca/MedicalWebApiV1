@@ -12,7 +12,7 @@ export class AuthController {
         .json({ message: "Haz Iniciado Session Correctamente", token, id });
     } catch (error: unknown) {
       if (error instanceof Error) {
-        return response.status(404).json({ message: error.message });
+        return response.status(400).json({ message: error.message });
       }
       return response.status(500).json({ message: "Error Desconocido" });
     }
