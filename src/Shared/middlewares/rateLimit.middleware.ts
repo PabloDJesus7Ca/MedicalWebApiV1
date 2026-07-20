@@ -3,7 +3,7 @@ import { rateLimit, ipKeyGenerator } from "express-rate-limit";
 
 export const LoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 5,
+  limit: 10,
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message: "Estamos experimentando muchas solicitudes desde esta IP, por favor intente más tarde.",
@@ -11,8 +11,8 @@ export const LoginLimiter = rateLimit({
 });
 
 export const ConsultaLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  limit: 30,
+  windowMs: 60 * 60,
+  limit: 60,
   standardHeaders: "draft-8",
   legacyHeaders: false,
   keyGenerator: (req: any) => {
