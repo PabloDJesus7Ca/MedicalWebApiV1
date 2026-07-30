@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { ConsultaController } from "./consulta.controller";
-import { authMiddleware, checkRoleMiddleware } from "../../Shared/middlewares/auth.middleware";
-import { ConsultaLimiter } from "../../Shared/middlewares/rateLimit.middleware";
-import { Rol } from "../../generated/prisma";
+import { ConsultaController } from "./consultation.controller";
+import { middlewareAuth, checkRoleMiddleware } from "@shared/middleware/auth.middleware";
+import { ConsultaLimiter } from "@shared/middleware/rate-limit.middleware";
+import { Rol } from "@/generated/prisma";
+import { validationRequest } from "@shared/middleware/validation.middleware";
+import { CreateConsultaSchema, UpdateConsultaSchema } from "./consultation.dto";
 
 const router: Router = Router();
 
@@ -13,10 +15,15 @@ const router: Router = Router();
  *     summary: Crea una nueva consulta diagnóstica con IA
  *     description: |
  *       **Cómo funciona:**
- *       Este endpoint recibe los síntomas del paciente y consulta su historial clínico (consultas previas y laboratorios) en la base de datos. Luego envía toda esa información a la IA (Gemini) usando un System Prompt estructurado.
+ *       Este endpoint recibe los síntomas del paciente y consulta su historial clínico en la base de datos. Para evitar alucinaciones de la IA y optimizar tokens, se inyectan únicamente las **últimas 5 consultas y 10 laboratorios**. Luego envía esta información a la IA (Gemini) usando un System Prompt estructurado. Además cuenta con validación estricta de Zod.
+ *
+ *       **Seguridad Clínica (IDOR) y Protección Financiera:**
+ *       - **Rate Limit:** Protegido contra "Denial of Wallet" (máx. 100 consultas por hora por doctor).
+ *       - **Privacidad (IDOR):** Solo puedes procesar consultas de pacientes que te pertenezcan, devolviendo un error 404 para aislar los historiales médicos entre doctores (salvo rol ADMIN).
+ *       - **Auditoría:** Cada uso genera un registro auditable e inmutable vía Pino/Loki para cumplimiento HIPAA/GDPR.
  *
  *       **Qué hace:**
- *       Genera un análisis médico automatizado que incluye diagnósticos diferenciales ordenados por probabilidad, nivel de riesgo individual, justificaciones clínicas basadas en el historial, signos de alarma y recomendaciones. La API está protegida por un Rate Limiter (máx. 30 consultas por hora por usuario).
+ *       Genera un análisis médico automatizado que incluye diagnósticos diferenciales ordenados por probabilidad, nivel de riesgo individual, justificaciones clínicas basadas en el historial, signos de alarma y recomendaciones.
  *
  *       **Cómo probarlo:**
  *       1. Autentícate en `/auth/login` y usa el JWT como Bearer Token.
@@ -42,6 +49,7 @@ const router: Router = Router();
  *                 example: 1
  *               input:
  *                 type: string
+ *                 minLength: 10
  *                 description: Síntomas y datos clínicos del paciente
  *                 example: "Paciente de 55 años acude con dolor opresivo en el pecho que se irradia hacia el brazo izquierdo, sudoración fría y mareos desde hace 45 minutos."
  *     responses:
@@ -107,7 +115,23 @@ const router: Router = Router();
  *                     documento:
  *                       type: string
  *       400:
- *         description: Datos inválidos (pacienteId no numérico, input vacío)
+ *         description: Error de validación en los datos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                       message:
+ *                         type: string
  *       401:
  *         description: No autenticado
  *       403:
@@ -117,13 +141,14 @@ const router: Router = Router();
  *       500:
  *         description: Error al procesar la consulta con la IA
  *       429:
- *         description: Demasiadas solicitudes (límite de 30 por hora superado)
+ *         description: Demasiadas solicitudes (límite de 100 por hora superado)
  */
 router.post(
   "/",
-  authMiddleware,
+  middlewareAuth,
   ConsultaLimiter,
   checkRoleMiddleware(Rol.DOCTOR),
+  validationRequest(CreateConsultaSchema),
   ConsultaController.consultar
 );
 
@@ -229,7 +254,7 @@ router.post(
  */
 router.get(
   "/historial",
-  authMiddleware,
+  middlewareAuth,
   checkRoleMiddleware(Rol.DOCTOR),
   ConsultaController.obtenerHistorial
 );
@@ -238,8 +263,8 @@ router.get(
  * @swagger
  * /consulta/{id}:
  *   get:
- *     summary: Obtiene una consulta por su ID
- *     description: Retorna los detalles completos de una consulta diagnóstica, incluyendo datos del paciente y del doctor.
+ *     summary: Obtiene una consulta por su ID (Protegida por IDOR)
+ *     description: Retorna los detalles completos de una consulta diagnóstica. Incluye protección IDOR, si un médico intenta acceder a una consulta que le pertenece a otro doctor, el sistema retornará un error 404 (Not Found) para proteger la privacidad del paciente. Los usuarios con rol ADMIN tienen acceso global.
  *     tags:
  *       - Consulta
  *     security:
@@ -335,10 +360,12 @@ router.get(
  *             properties:
  *               input:
  *                 type: string
+ *                 minLength: 10
  *                 description: Nuevos síntomas y datos clínicos
  *                 example: "Paciente de 50 años con cefalea intensa y visión borrosa."
  *               output:
  *                 type: string
+ *                 minLength: 10
  *                 description: Nuevo diagnóstico
  *     responses:
  *       200:
@@ -373,7 +400,23 @@ router.get(
  *                     email:
  *                       type: string
  *       400:
- *         description: ID inválido o body vacío
+ *         description: Error de validación en los datos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                       message:
+ *                         type: string
  *       401:
  *         description: No autenticado
  *       403:
@@ -383,14 +426,15 @@ router.get(
  */
 router.put(
   "/:id",
-  authMiddleware,
+  middlewareAuth,
   checkRoleMiddleware(Rol.DOCTOR),
+  validationRequest(UpdateConsultaSchema),
   ConsultaController.actualizarConsulta
 );
 
 router.get(
   "/:id",
-  authMiddleware,
+  middlewareAuth,
   checkRoleMiddleware(Rol.DOCTOR),
   ConsultaController.obtenerConsulta
 );

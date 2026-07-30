@@ -1,7 +1,9 @@
 import { Router } from "express";
-import { authMiddleware, checkRoleMiddleware } from "../../../Shared/middlewares/auth.middleware";
-import { Rol } from "../../../generated/prisma";
-import { AdminUsuarioController } from "./usuarios.controller";
+import { checkRoleMiddleware, middlewareAuth } from "@shared/middleware/auth.middleware";
+import { Rol } from "@generated/prisma";
+import { AdminUsuarioController } from "./user.controller";
+import { validationRequest } from "@shared/middleware/validation.middleware";
+import { CreateUsuarioAdminDto, UpdateUsuarioAdminSchema } from "@modules/user/user.dto";
 
 const router: Router = Router();
 
@@ -44,13 +46,35 @@ const router: Router = Router();
  *       201:
  *         description: Usuario creado exitosamente
  *       400:
- *         description: El email ya está registrado
+ *         description: Error de validación
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                       message:
+ *                         type: string
  *       401:
  *         description: No autenticado
  *       403:
  *         description: El usuario autenticado no tiene rol ADMIN
  */
-router.post("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), AdminUsuarioController.crearUsuario);
+router.post(
+  "/",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.ADMIN),
+  validationRequest(CreateUsuarioAdminDto),
+  AdminUsuarioController.crearUsuario
+);
 
 /**
  * @swagger
@@ -69,7 +93,12 @@ router.post("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), AdminUsuarioCon
  *       403:
  *         description: El usuario autenticado no tiene rol ADMIN
  */
-router.get("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), AdminUsuarioController.listarUsuarios);
+router.get(
+  "/",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.ADMIN),
+  AdminUsuarioController.listarUsuarios
+);
 
 /**
  * @swagger
@@ -97,7 +126,7 @@ router.get("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), AdminUsuarioCont
  */
 router.get(
   "/:id",
-  authMiddleware,
+  middlewareAuth,
   checkRoleMiddleware(Rol.ADMIN),
   AdminUsuarioController.obtenerUsuarioPorId
 );
@@ -127,6 +156,7 @@ router.get(
  *             properties:
  *               nombre:
  *                 type: string
+ *                 maxLength: 30
  *               email:
  *                 type: string
  *               rol:
@@ -138,6 +168,8 @@ router.get(
  *     responses:
  *       200:
  *         description: Usuario actualizado correctamente
+ *       400:
+ *         description: Error de validación
  *       404:
  *         description: Usuario no encontrado
  *       403:
@@ -145,8 +177,9 @@ router.get(
  */
 router.put(
   "/:id",
-  authMiddleware,
+  middlewareAuth,
   checkRoleMiddleware(Rol.ADMIN),
+  validationRequest(UpdateUsuarioAdminSchema),
   AdminUsuarioController.actualizarUsuario
 );
 

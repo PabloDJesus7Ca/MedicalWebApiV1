@@ -1,54 +1,49 @@
-import { AuthRepository } from "./auth.repositories";
-import { UserResponses } from "../../Shared/Errors/LoginError";
-import { hashdPassword, VerifyPassword } from "../../Shared/utils/password.helper.user";
-import { CheckTypeLoginDto, CreateUserDto } from "./auth.models.user";
-import { ResponseCreateUserDto, LoginResponseDto } from "./auth.types.user";
-import { ShowRealResponseToUser } from "./auth.fn.model";
-import { SingToken } from "../../Shared/utils/jwt.helper";
-import { logAudit } from "../../Shared/utils/audit.helper";
+import { AuthRepository } from "./auth.repository";
+import { UserResponse } from "@shared/class/custom-error.class";
+import { VerifyPassword } from "@shared/utils/password.helper";
+import { CheckTypeLoginDto, LoginResponseDto } from "./auth.dto";
+import { SingToken } from "@shared/utils/jwt.helper";
+import { logAudit } from "@shared/utils/audit.helper";
+import { logger } from "@modules/observability/logger";
 
 export class AuthService {
-  static async createNewUserFromService(data: CreateUserDto): Promise<ResponseCreateUserDto> {
-    const userExist = await AuthRepository.CheckUser(data.email);
-
-    if (userExist) {
-      throw new UserResponses("Este Cuenta Ya Existe Ha Sido Tomada Por Un Usuario");
-    }
-
-    const createdUser = await AuthRepository.CreateUser({
-      nombre: data.nombre,
-      email: data.email,
-      password: await hashdPassword(data.password),
-      rol: data.rol,
-    });
-
-    await logAudit(createdUser.id, 'CREATE', 'User', createdUser.id, `Usuario ${data.email} registrado con rol ${data.rol}`);
-
-    const user = ShowRealResponseToUser(createdUser);
-    return user;
-  }
-
   static async CheckLoginUserFromService(user: CheckTypeLoginDto): Promise<LoginResponseDto> {
     const userExist = await AuthRepository.CheckUser(user.email);
     if (!userExist) {
-      throw new UserResponses("Este Email Es Incorrecto");
+      await logAudit(undefined, "AUTH_FAILED", "User", undefined, `Intento de login con email inexistente: ${user.email}`);
+      logger.warn({ email: user.email, accion: "LOGIN_FAILED_NO_USER" }, `Intento de login fallido: email inexistente (${user.email})`);
+      throw new UserResponse(
+        "Credenciales inválidas. El correo electrónico o la contraseña son incorrectos."
+      );
     }
 
     const passwordUser = await VerifyPassword(user.password, userExist.password);
 
-    if (passwordUser === false) {
-      throw new UserResponses("Esta Contrasena Es Incorrecta");
+    if (!passwordUser) {
+      await logAudit(userExist.id, "AUTH_FAILED", "User", userExist.id, `Contraseña incorrecta ingresada para Dr(a). ${userExist.nombre}`);
+      logger.warn({ doctor_id: userExist.id, email: userExist.email, accion: "LOGIN_FAILED_WRONG_PASS" }, `Intento de login fallido: contraseña incorrecta para ${userExist.nombre}`);
+      throw new UserResponse(
+        "Credenciales inválidas. El correo electrónico o la contraseña son incorrectos."
+      );
     }
 
     const token = SingToken({
       id: userExist.id,
       email: userExist.email,
+      nombre: userExist.nombre,
       rol: userExist.rol,
     });
 
-    await logAudit(userExist.id, "LOGIN", "User", userExist.id, `Inicio de sesión de ${userExist.email}`);
+    await logAudit(
+      userExist.id,
+      "LOGIN",
+      "User",
+      userExist.id,
+      `Dr(a). ${userExist.nombre} ha iniciado sesión con éxito`
+    );
+
+    logger.info({ doctor_id: userExist.id, doctor_nombre: userExist.nombre, accion: "LOGIN_SUCCESS" }, `Dr(a). ${userExist.nombre} inició sesión con éxito.`);
 
     return { token, id: userExist.id };
-    // TODO: Implementar lógica de validación de credenciales y firma de JWT (RF-01, RF-02)
   }
 }

@@ -1,5 +1,5 @@
-import { prisma } from "../../../src/configurations/lib/prisma";
-import { CreateUserDto } from "./auth.models.user";
+import { prisma } from "@/config/lib/prisma";
+
 export class AuthRepository {
   static async LoginAuth(email: string) {
     return await prisma.user.findUniqueOrThrow({
@@ -15,9 +15,5 @@ export class AuthRepository {
         email,
       },
     });
-  }
-
-  static async CreateUser(data: CreateUserDto) {
-    return await prisma.user.create({ data });
   }
 }

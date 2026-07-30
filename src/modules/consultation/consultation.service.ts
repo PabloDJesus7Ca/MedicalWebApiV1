@@ -1,11 +1,21 @@
-import { ai, type GenerateContentConfig } from "../../Shared/utils/genai";
-import { prisma } from "../../configurations/lib/prisma";
-import { HistorialFiltersDto, CreateConsultaDto, UpdateConsultaDto } from "./consulta.dto";
-import { logAudit } from "../../Shared/utils/audit.helper";
-import { System } from "../../configurations/constant";
+import { ai, type GenerateContentConfig } from "@shared/utils/ai.helper";
+import { prisma } from "@/config/lib/prisma";
+import { CreateConsultaDto, HistorialFiltersDto, UpdateConsultaDto } from "./consultation.dto";
+import { logAudit } from "@shared/utils/audit.helper";
+import { System } from "@shared/type/prompt-config.type";
+import { logger } from "@modules/observability/logger";
+
+const parseConsultaOutput = (consulta: any) => {
+  if (!consulta || typeof consulta.output !== "string") return consulta;
+  try {
+    return { ...consulta, output: JSON.parse(consulta.output) };
+  } catch (e) {
+    return consulta;
+  }
+};
 
 export class ConsultaService {
-  static async crearConsulta(doctorId: number, dto: CreateConsultaDto) {
+  static async crearConsulta(user: { id: number; rol: string; nombre?: string }, dto: CreateConsultaDto) {
     const config = await prisma.config.findFirst();
     const modelName = config?.modelName ?? "gemini-3-flash-preview";
     const temperatura = config?.temperatura ?? 0.1;
@@ -15,8 +25,9 @@ export class ConsultaService {
     const promptVersion = await prisma.promptVersion.findFirst({ where: { activo: true } });
 
     // PASO 1: Buscar historial médico del paciente para incluirlo en el prompt (RF-18)
-    const pacienteHistorial = await prisma.paciente.findUnique({
-      where: { id: dto.pacienteId },
+    const wherePaciente = user.rol === "ADMIN" ? { id: dto.pacienteId } : { id: dto.pacienteId, creadoPorId: user.id };
+    const pacienteHistorial = await prisma.paciente.findFirst({
+      where: wherePaciente,
       include: {
         consultas: {
           orderBy: { createdAt: "desc" },
@@ -82,7 +93,6 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
       config: configPayload as GenerateContentConfig,
     });
 
-
     let rawOutput = response.text ?? "{}";
     rawOutput = rawOutput
       .replace(/```json/g, "")
@@ -99,7 +109,6 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
         nivelRiesgo = parsedOutput.nivelUrgencia;
       }
     } catch (e) {
-
       const match = output.match(/"nivelUrgencia"\s*:\s*"(Alto|Medio|Bajo)"/i);
       if (match?.[1]) {
         nivelRiesgo = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
@@ -110,7 +119,7 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
 
     const consulta = await prisma.consulta.create({
       data: {
-        doctorId,
+        doctorId: user.id,
         pacienteId: dto.pacienteId,
         input: dto.input,
         output,
@@ -127,20 +136,23 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
     });
 
     await logAudit(
-      doctorId,
+      user.id,
       "CONSULTA_AI",
       "Consulta",
       consulta.id,
-      `Consulta IA para paciente #${dto.pacienteId}`
+      `Dr(a). ${user.nombre || user.id} procesó una consulta médica con IA para el paciente #${dto.pacienteId}`
     );
 
-    return consulta;
+    logger.info({ doctor_id: user.id, doctor_nombre: user.nombre, accion: "CONSULTA_AI", paciente_id: dto.pacienteId, consulta_id: consulta.id }, `Dr(a). ${user.nombre || user.id} procesó una consulta de IA.`);
+
+    return parseConsultaOutput(consulta);
   }
 
-  static async updateConsulta(consultaId: number, doctorId: number, dto: UpdateConsultaDto) {
-    const consulta = await prisma.consulta.findUnique({ where: { id: consultaId } });
+  static async updateConsulta(consultaId: number, user: { id: number; rol: string; nombre?: string }, dto: UpdateConsultaDto) {
+    const where = user.rol === "ADMIN" ? { id: consultaId } : { id: consultaId, doctorId: user.id };
+    const consulta = await prisma.consulta.findFirst({ where });
     if (!consulta) {
-      throw new Error("Consulta no encontrada.");
+      throw new Error("Consulta no encontrada o acceso denegado.");
     }
 
     const updated = await prisma.consulta.update({
@@ -161,19 +173,22 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
     });
 
     await logAudit(
-      doctorId,
+      user.id,
       "UPDATE",
       "Consulta",
       consultaId,
-      `Consulta #${consultaId} actualizada`
+      `Dr(a). ${user.nombre || user.id} actualizó el diagnóstico de la consulta #${consultaId}`
     );
 
-    return updated;
+    logger.info({ doctor_id: user.id, doctor_nombre: user.nombre, accion: "UPDATE_CONSULTA", consulta_id: consultaId }, `Dr(a). ${user.nombre || user.id} actualizó el diagnóstico de la consulta #${consultaId}.`);
+
+    return parseConsultaOutput(updated);
   }
 
-  static async getConsultaById(consultaId: number) {
-    const consulta = await prisma.consulta.findUnique({
-      where: { id: consultaId },
+  static async getConsultaById(consultaId: number, user: { id: number; rol: string; nombre?: string }) {
+    const where = user.rol === "ADMIN" ? { id: consultaId } : { id: consultaId, doctorId: user.id };
+    const consulta = await prisma.consulta.findFirst({
+      where,
       include: {
         paciente: {
           select: { id: true, nombre: true, documento: true },
@@ -188,10 +203,10 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
     });
 
     if (!consulta) {
-      throw new Error("Consulta no encontrada.");
+      throw new Error("Consulta no encontrada o acceso denegado.");
     }
 
-    return consulta;
+    return parseConsultaOutput(consulta);
   }
 
   /**
@@ -201,13 +216,13 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
    * Solo se retornan consultas cuyo `doctorId` coincide con el médico autenticado:
    * un médico nunca puede ver el historial de consultas de otro médico.
    */
-  static async getHistorialPorDoctor(doctorId: number, filtros: HistorialFiltersDto) {
+  static async getHistorialPorDoctor(user: { id: number; rol: string; nombre?: string }, filtros: HistorialFiltersDto) {
     const page = filtros.page ?? 1;
     const pageSize = filtros.pageSize ?? 10;
     const skip = (page - 1) * pageSize;
 
     const where = {
-      ...(filtros.all ? {} : { doctorId }),
+      ...((filtros.all && user.rol === "ADMIN") ? {} : { doctorId: user.id }),
       ...(filtros.pacienteId ? { pacienteId: filtros.pacienteId } : {}),
       ...(filtros.fechaInicio || filtros.fechaFin
         ? {
@@ -237,6 +252,6 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
       prisma.consulta.count({ where }),
     ]);
 
-    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+    return { data: data.map(parseConsultaOutput), total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   }
 }
