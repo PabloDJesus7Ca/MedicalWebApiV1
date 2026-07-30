@@ -4,32 +4,15 @@ import main from "@modules/agent/agent.structure";
 import { AuthRequest } from "@shared/middleware/auth.middleware";
 import { logAudit } from "@shared/utils/audit.helper";
 
-import { ChatAgentDto } from "./agent.dto";
+import { ChatAgentSchema } from "./agent.dto";
+import { ZodError } from "zod";
 
 export class UserControllerAi {
   static async Chat(request: AuthRequest, response: Response) {
-    const { pregunta } = request.body as ChatAgentDto;
-
-    let promptInput = "";
-    if (typeof pregunta === "string") {
-      promptInput = pregunta;
-    } else if (pregunta && typeof pregunta === "object") {
-      const maybeSug = pregunta.SugestAiAnswerDignostic;
-      if (typeof maybeSug === "string") {
-        promptInput = maybeSug;
-      } else {
-        const maybeText = pregunta.text ?? pregunta.message;
-        if (typeof maybeText === "string") promptInput = maybeText;
-      }
-    }
-    if (!promptInput || !promptInput.toString().trim()) {
-      return response
-        .status(400)
-        .json({ ProcessError: "El campo de pregunta es requerido y no puede estar vacío." });
-    }
-
     try {
-      const prompt = utilsFormatPrompt(promptInput);
+      const { pregunta } = ChatAgentSchema.parse(request.body);
+
+      const prompt = utilsFormatPrompt(pregunta);
       const consulta = await main(prompt);
       const cleanedResponse = utilsFormatPrompt(consulta ?? "");
 
@@ -46,6 +29,9 @@ export class UserControllerAi {
 
       return response.status(200).json(cleanedResponse);
     } catch (error: unknown) {
+      if (error instanceof ZodError) {
+        return response.status(400).json({ ProcessError: error.issues[0]?.message || "Datos inválidos" });
+      }
       if (error instanceof Error) {
         return response.status(500).json({ ProcessError: error.message });
       }

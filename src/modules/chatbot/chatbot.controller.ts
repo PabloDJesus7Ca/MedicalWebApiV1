@@ -1,6 +1,8 @@
 import { Response } from "express";
 import { AuthRequest } from "@shared/middleware/auth.middleware";
 import { ChatbotService } from "./chatbot.service";
+import { AskQuestionSchema } from "./chatbot.dto";
+import { ZodError } from "zod";
 
 export class ChatbotController {
   static async ask(request: AuthRequest, response: Response) {
@@ -10,27 +12,18 @@ export class ChatbotController {
         return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
       }
 
-      const { consultaId, question } = request.body;
-
-      if (!consultaId || typeof consultaId !== "number") {
-        return response
-          .status(400)
-          .json({ message: "El parámetro 'consultaId' es requerido y debe ser un número entero." });
-      }
-
-      if (!question || typeof question !== "string" || !question.trim()) {
-        return response
-          .status(400)
-          .json({ message: "El campo 'question' es requerido y debe ser un texto no vacío." });
-      }
+      const { consultaId, question } = AskQuestionSchema.parse(request.body);
 
       const result = await ChatbotService.askQuestion(doctorId, {
         consultaId,
-        question: question.trim(),
+        question,
       });
 
       return response.status(200).json(result);
     } catch (error: unknown) {
+      if (error instanceof ZodError) {
+        return response.status(400).json({ message: "Datos inválidos", errors: error.issues });
+      }
       if (error instanceof Error) {
         return response.status(400).json({ message: error.message });
       }
