@@ -1,117 +1,125 @@
 import { Response } from "express";
-import { AuthRequest } from "../../Shared/middlewares/auth.middleware";
-import { PacientesService } from "./pacientes.service";
+import { AuthRequest } from "@shared/middleware/auth.middleware";
+import { PacientesService } from "./patient.service";
 
 export class PacientesController {
   static async create(request: AuthRequest, response: Response) {
     try {
-      const creadoPorId = request.user?.id;
-      if (!creadoPorId) {
-        return response.status(401).json({ message: "No autenticado." });
+      const user = request.user;
+      if (!user) {
+        return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
       }
-      const paciente = await PacientesService.createPaciente(request.body, creadoPorId);
+      const paciente = await PacientesService.createPaciente(request.body, user);
       return response.status(201).json({ paciente });
     } catch (error: unknown) {
       if (error instanceof Error) {
         return response.status(400).json({ message: error.message });
       }
-      return response.status(500).json({ message: "Error desconocido." });
+      return response.status(500).json({ message: "Error interno al registrar al paciente." });
     }
   }
 
   static async list(request: AuthRequest, response: Response) {
     try {
+      const user = request.user;
+      if (!user) return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
       const search =
         typeof request.query["search"] === "string" ? request.query["search"] : undefined;
-      const pacientes = await PacientesService.listPacientes(search);
+      const pacientes = await PacientesService.listPacientes(user, search);
       return response.status(200).json({ pacientes });
     } catch (error: unknown) {
       if (error instanceof Error) {
         return response.status(500).json({ message: error.message });
       }
-      return response.status(500).json({ message: "Error desconocido." });
+      return response.status(500).json({ message: "Error interno al listar los pacientes." });
     }
   }
 
   static async getById(request: AuthRequest, response: Response) {
     try {
+      const user = request.user;
+      if (!user) return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
       const id = Number(request.params["id"]);
-      const paciente = await PacientesService.getPacienteById(id);
+      const paciente = await PacientesService.getPacienteById(id, user);
       return response.status(200).json({ paciente });
     } catch (error: unknown) {
       if (error instanceof Error) {
         return response.status(404).json({ message: error.message });
       }
-      return response.status(500).json({ message: "Error desconocido." });
+      return response.status(500).json({ message: "Error interno al obtener el paciente." });
     }
   }
 
   static async update(request: AuthRequest, response: Response) {
     try {
       const id = Number(request.params["id"]);
-      const userId = request.user?.id;
-      if (!userId) return response.status(401).json({ message: "No autenticado." });
+      const user = request.user;
+      if (!user) return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
 
-      const paciente = await PacientesService.updatePaciente(id, request.body, userId);
+      const paciente = await PacientesService.updatePaciente(id, request.body, user);
       return response.status(200).json({ paciente });
     } catch (error: unknown) {
       if (error instanceof Error) {
         return response.status(404).json({ message: error.message });
       }
-      return response.status(500).json({ message: "Error desconocido." });
+      return response.status(500).json({ message: "Error interno al actualizar al paciente." });
     }
   }
 
   static async delete(request: AuthRequest, response: Response) {
     try {
       const id = Number(request.params["id"]);
-      const userId = request.user?.id;
-      if (!userId) return response.status(401).json({ message: "No autenticado." });
-      const result = await PacientesService.deletePaciente(id, userId);
+      const user = request.user;
+      if (!user) return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
+      const result = await PacientesService.deletePaciente(id, user);
       return response.status(200).json(result);
     } catch (error: unknown) {
       if (error instanceof Error) {
         return response.status(404).json({ message: error.message });
       }
-      return response.status(500).json({ message: "Error desconocido." });
+      return response.status(500).json({ message: "Error interno al eliminar al paciente." });
     }
   }
 
   static async addLaboratorio(request: AuthRequest, response: Response) {
     try {
       const pacienteId = Number(request.params["id"]);
-      const userId = request.user?.id;
-      if (!userId) return response.status(401).json({ message: "No autenticado." });
+      const user = request.user;
+      if (!user) return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
       const { descripcion, resultado } = request.body;
 
-      if (!descripcion || typeof descripcion !== "string") {
-        return response.status(400).json({ message: "El campo 'descripcion' es requerido." });
-      }
 
-      if (!resultado || typeof resultado !== "string") {
-        return response.status(400).json({ message: "El campo 'resultado' es requerido." });
-      }
 
-      const laboratorio = await PacientesService.addLaboratorio(pacienteId, { descripcion, resultado }, userId);
+      const laboratorio = await PacientesService.addLaboratorio(
+        pacienteId,
+        { descripcion, resultado },
+        user
+      );
       return response.status(201).json({ laboratorio });
     } catch (error: unknown) {
       if (error instanceof Error) {
         return response.status(400).json({ message: error.message });
       }
-      return response.status(500).json({ message: "Error desconocido." });
+      return response
+        .status(500)
+        .json({ message: "Error interno al agregar el resultado de laboratorio." });
     }
   }
 
   static async getExpediente(request: AuthRequest, response: Response) {
     try {
+      const user = request.user;
+      if (!user) return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
       const pacienteId = Number(request.params["id"]);
-      const expediente = await PacientesService.getExpedienteCompleto(pacienteId);
+      const expediente = await PacientesService.getExpedienteCompleto(pacienteId, user);
       return response.status(200).json({ expediente });
     } catch (error: unknown) {
       if (error instanceof Error) {
         return response.status(404).json({ message: error.message });
       }
-      return response.status(500).json({ message: "Error desconocido." });
+      return response
+        .status(500)
+        .json({ message: "Error interno al obtener el expediente médico del paciente." });
     }
   }
 }
