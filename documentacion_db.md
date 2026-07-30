@@ -8,7 +8,8 @@
 
 ## 1. Introducción y Tecnologías
 
-Esta sección documenta el inicio del desarrollo, la configuración del entorno, la estructura inicial modular y el diseño de persistencia del sistema **MedReason AI**.
+Esta sección documenta el inicio del desarrollo, la configuración del entorno, la estructura inicial modular y el diseño
+de persistencia del sistema **MedReason AI**.
 
 - **Motor de Base de Datos:** PostgreSQL 16 (Relacional con soporte ACID completo).
 - **ORM (Capa de Acceso a Datos):** Prisma ORM v7 (Type-safe).
@@ -23,27 +24,36 @@ Esta sección documenta el inicio del desarrollo, la configuración del entorno,
 
 ## 1.1 Rediseño del Esquema de Datos (Cambios del Hito 1)
 
-Como parte de la transición hacia el diseño de la base de datos definitiva de **MedReason AI**, se modificó y optimizó la estructura de base de datos previa (plantilla) aplicando los siguientes cambios lógicos de persistencia:
+Como parte de la transición hacia el diseño de la base de datos definitiva de **MedReason AI**, se modificó y optimizó
+la estructura de base de datos previa (plantilla) aplicando los siguientes cambios lógicos de persistencia:
 
 - **Tablas Eliminadas/Reestructuradas:**
-  - `Doctor`: Se eliminó para unificar a todo el personal en la entidad `User` usando la asignación del rol `DOCTOR`, evitando la duplicidad de datos en tablas paralelas.
-  - `Agenda`: Se eliminó por estar fuera del alcance exclusivo de apoyo diagnóstico web del sistema.
-  - `HistorialPaciente`: Se fragmentó y reestructuró en las tablas `Consulta` y `Laboratorio` para separar ordenadamente las sugerencias diagnósticas y las pruebas clínicas.
+    - `Doctor`: Se eliminó para unificar a todo el personal en la entidad `User` usando la asignación del rol `DOCTOR`,
+      evitando la duplicidad de datos en tablas paralelas.
+    - `Agenda`: Se eliminó por estar fuera del alcance exclusivo de apoyo diagnóstico web del sistema.
+    - `HistorialPaciente`: Se fragmentó y reestructuró en las tablas `Consulta` y `Laboratorio` para separar
+      ordenadamente las sugerencias diagnósticas y las pruebas clínicas.
 - **Tablas Nuevas Creadas:**
-  - `Consulta`: Para registrar la trazabilidad completa e inmutable de la IA (síntomas, nivel de riesgo, tokens consumidos, versión de prompt y modelo).
-  - `Laboratorio`: Para registrar los resultados de análisis y exámenes complementarios del expediente de cada paciente.
-  - `Config`: Modelo tipo Singleton para editar en tiempo real los parámetros del modelo de Gemini AI (temperatura, prompt, tokens).
-  - `PromptVersion`: Para registrar las modificaciones al prompt del sistema y asegurar reproducibilidad clínica.
-  - `AuditLog`: Bitácora inmutable de eventos de seguridad (inicios de sesión, modificaciones, etc.).
+    - `Consulta`: Para registrar la trazabilidad completa e inmutable de la IA (síntomas, nivel de riesgo, tokens
+      consumidos, versión de prompt y modelo).
+    - `Laboratorio`: Para registrar los resultados de análisis y exámenes complementarios del expediente de cada
+      paciente.
+    - `Config`: Modelo tipo Singleton para editar en tiempo real los parámetros del modelo de Gemini AI (temperatura,
+      prompt, tokens).
+    - `PromptVersion`: Para registrar las modificaciones al prompt del sistema y asegurar reproducibilidad clínica.
+    - `AuditLog`: Bitácora inmutable de eventos de seguridad (inicios de sesión, modificaciones, etc.).
 - **Correcciones del Motor de Base de Datos:**
-  - Se actualizó el provider del generador a `"prisma-client-js"`.
-  - Se eliminó la propiedad estática `url` en la directiva `datasource db` para delegar la conexión al cargador dinámico de `prisma.config.ts` de Prisma v7.
+    - Se actualizó el provider del generador a `"prisma-client-js"`.
+    - Se eliminó la propiedad estática `url` en la directiva `datasource db` para delegar la conexión al cargador
+      dinámico de `prisma.config.ts` de Prisma v7.
 
 ---
 
 ## 2. Estructura Inicial del Proyecto (Carpetas y Módulos)
 
-El backend sigue una arquitectura limpia modular por dominio (Feature Folders). Para este Entregable 1, se han creado y estructurado los directorios y archivos base (esqueletos en blanco) para garantizar que el desarrollo sea ordenado y sin colisiones entre desarrolladores:
+El backend sigue una arquitectura limpia modular por dominio (Feature Folders). Para este Entregable 1, se han creado y
+estructurado los directorios y archivos base (esqueletos en blanco) para garantizar que el desarrollo sea ordenado y sin
+colisiones entre desarrolladores:
 
 ```text
 medical-ai-backend/
@@ -52,7 +62,7 @@ medical-ai-backend/
 ├── src/
 │   ├── generated/                   # Cliente Prisma autogenerado
 │   ├── configurations/              # Configuraciones globales
-│   │   ├── configs.ts               # Variables con Zod
+│   │   ├── configuration.systemconfig.ts               # Variables con Zod
 │   │   ├── constant.ts              # Constantes del sistema
 │   │   └── lib/
 │   │       └── prisma.ts            # Singleton de conexión
@@ -63,13 +73,13 @@ medical-ai-backend/
 │   │   └── admin/                   # Gestión de usuarios, métricas y prompts (RF-24)
 │   ├── Shared/                      # Middlewares y utilidades compartidas
 │   │   ├── middlewares/
-│   │   │   ├── auth.middleware.ts   # Autenticación JWT y RBAC (RF-03, RF-04)
-│   │   │   ├── rateLimit.middleware.ts # Control de peticiones (BE-21)
-│   │   │   └── errorHandlerGlobal.ts  # Manejo centralizado de excepciones
+│   │   │   ├── middleware.auth.ts   # Autenticación JWT y RBAC (RF-03, RF-04)
+│   │   │   ├── middleware.ratelimit.ts # Control de peticiones (BE-21)
+│   │   │   └── middleware.errors.ts  # Manejo centralizado de excepciones
 │   │   └── utils/
-│   │       ├── audit.helper.ts      # Registro de logs inmutables (RF-20)
-│   │       └── formatPrompt.ts      # Constructor del prompt para la IA (BE-11)
-│   └── index.ts                     # Punto de entrada del servidor Express
+│   │       ├── utils.auditHelper.ts      # Registro de logs inmutables (RF-20)
+│   │       └── utils.formatPrompt.ts      # Constructor del prompt para la IA (BE-11)
+│   └── app.ts                     # Punto de entrada del servidor Express
 ├── docker-compose.yml               # Orquestación de PostgreSQL local
 ├── tsconfig.json                    # Configuración estricta de TypeScript 6
 ├── .env.example                     # Plantilla de variables de entorno públicas
@@ -80,11 +90,15 @@ medical-ai-backend/
 
 ## 3. Configuración del Compilador TypeScript (`tsconfig.json`)
 
-Para evitar fallos de compilación en el servidor y asegurar la correcta interpretación de los módulos ES6 modernos (ya que el proyecto usa `"type": "module"` en su `package.json`), se optimizó el archivo `tsconfig.json`:
+Para evitar fallos de compilación en el servidor y asegurar la correcta interpretación de los módulos ES6 modernos (ya
+que el proyecto usa `"type": "module"` en su `package.json`), se optimizó el archivo `tsconfig.json`:
 
 - **Configuración del Módulo:** Ajustado a `"module": "esnext"` para compilar en formato nativo de ES Modules (ESM).
-- **Resolución de Módulos:** Ajustado a `"moduleResolution": "bundler"`. Esto soluciona la incompatibilidad que tenía el resolvedor anterior con ESM y evita las advertencias de obsolescencia de `"node" (node10)` en TypeScript 6.
-- **Limpieza de Parámetros:** Se configuró el compilador con `"noUnusedLocals": true` y `"noUnusedParameters": true`. Para cumplir esto sin romper el build en los archivos en blanco creados para el equipo, los parámetros intencionalmente vacíos se prefijaron con un guion bajo (ej. `_req`, `_res`).
+- **Resolución de Módulos:** Ajustado a `"moduleResolution": "bundler"`. Esto soluciona la incompatibilidad que tenía el
+  resolvedor anterior con ESM y evita las advertencias de obsolescencia de `"node" (node10)` en TypeScript 6.
+- **Limpieza de Parámetros:** Se configuró el compilador con `"noUnusedLocals": true` y `"noUnusedParameters": true`.
+  Para cumplir esto sin romper el build en los archivos en blanco creados para el equipo, los parámetros
+  intencionalmente vacíos se prefijaron con un guion bajo (ej. `_req`, `_res`).
 
 ---
 
@@ -171,26 +185,30 @@ erDiagram
     Paciente ||--o{ Laboratorio : "tiene (pacienteId)"
 ```
 
-- **Trazabilidad:** Las consultas y los registros de auditoría están forzosamente asociados a un `User` (médico/administrador) para evitar el anonimato de las consultas médicas.
-- **Centralización Clínica:** El expediente de un paciente asocia automáticamente todos sus resultados de laboratorio (`Laboratorio`) y sus consultas a la IA (`Consulta`).
+- **Trazabilidad:** Las consultas y los registros de auditoría están forzosamente asociados a un `User`
+  (médico/administrador) para evitar el anonimato de las consultas médicas.
+- **Centralización Clínica:** El expediente de un paciente asocia automáticamente todos sus resultados de laboratorio
+  (`Laboratorio`) y sus consultas a la IA (`Consulta`).
 
 ---
 
 ## 6. Índices de Rendimiento y Optimización (`DB-05`)
 
-Para cumplir los tiempos de respuesta exigidos en los requisitos de rendimiento, se han añadido los siguientes índices en la estructura física:
+Para cumplir los tiempos de respuesta exigidos en los requisitos de rendimiento, se han añadido los siguientes índices
+en la estructura física:
 
-1.  `User(email)`: Inicio de sesión inmediato.
-2.  `Paciente(documento, nombre)`: Búsqueda rápida por cédula/nombre.
-3.  `Consulta(doctorId, pacienteId, createdAt)`: Carga inmediata del historial del médico.
-4.  `Laboratorio(pacienteId)`: Expediente clínico optimizado.
-5.  `AuditLog(userId, createdAt)`: Paginación y búsqueda rápida de auditoría.
+1. `User(email)`: Inicio de sesión inmediato.
+2. `Paciente(documento, nombre)`: Búsqueda rápida por cédula/nombre.
+3. `Consulta(doctorId, pacienteId, createdAt)`: Carga inmediata del historial del médico.
+4. `Laboratorio(pacienteId)`: Expediente clínico optimizado.
+5. `AuditLog(userId, createdAt)`: Paginación y búsqueda rápida de auditoría.
 
 ---
 
 ## 7. Variables de Entorno (`.env.example`)
 
-El archivo [.env.example] sirve para que cualquier desarrollador sepa qué variables requiere configurar en su propio archivo local de credenciales `.env`:
+El archivo [.env.example] sirve para que cualquier desarrollador sepa qué variables requiere configurar en su propio
+archivo local de credenciales `.env`:
 
 - `DATABASE_URL`: URL de conexión a la DB PostgreSQL.
 - `JWT_SECRET`: Llave secreta para autenticación con tokens JWT.
@@ -201,48 +219,50 @@ El archivo [.env.example] sirve para que cualquier desarrollador sepa qué varia
 
 ## 8. Guía de Configuración del Entorno para el Equipo
 
-1.  **Levantar Base de Datos en Docker:**
-    ```bash
-    docker-compose up -d
-    ```
-2.  **Configurar Variables:** Copiar `.env.example` como `.env` e ingresar las claves.
-3.  **Correr Migraciones y Generar Cliente:**
-    ```bash
-    npx prisma migrate dev --name init
-    npx prisma generate
-    ```
-4.  **Ejecutar Seed:** Registrar el administrador por defecto y los prompts iniciales en la base de datos:
-    ```bash
-    npx prisma db seed
-    ```
+1. **Levantar Base de Datos en Docker:**
+   ```bash
+   docker-compose up -d
+   ```
+2. **Configurar Variables:** Copiar `.env.example` como `.env` e ingresar las claves.
+3. **Correr Migraciones y Generar Cliente:**
+   ```bash
+   npx prisma migrate dev --name init
+   npx prisma generate
+   ```
+4. **Ejecutar Seed:** Registrar el administrador por defecto y los prompts iniciales en la base de datos:
+   ```bash
+   npx prisma db seed
+   ```
     - _Credenciales de Admin por defecto:_ `admin@medreason.ai` / `AdminPassword123!`
-5.  **Iniciar Servidor de Desarrollo:**
-    ```bash
-    npm run dev
-    ```
+5. **Iniciar Servidor de Desarrollo:**
+   ```bash
+   npm run dev
+   ```
 
 ---
 
 # Sprint 1: Autenticación de usuarios por JWT y CRUD de Pacientes. DONE
 
 Resumen del Sprint: Módulo de Pacientes  
-Este documento detalla todos los cambios y nuevas características implementadas para el Módulo de Pacientes durante este Sprint.
+Este documento detalla todos los cambios y nuevas características implementadas para el Módulo de Pacientes durante este
+Sprint.
 
 ## Objetivo Cumplido
 
-Se implementó por completo el CRUD de gestión de pacientes, la integración de resultados de laboratorio y la generación del expediente clínico completo. Todo el código fue tipado fuertemente con TypeScript, protegido con JWT y documentado en Swagger.
+Se implementó por completo el CRUD de gestión de pacientes, la integración de resultados de laboratorio y la generación
+del expediente clínico completo. Todo el código fue tipado fuertemente con TypeScript, protegido con JWT y documentado
+en Swagger.
 
 ## Archivos Creados / Modificados
 
 ### 1. DTOs de Validación
 
-pacientes.dto.ts
+patient.dto.ts
 
-Se crearon las interfaces estrictas para asegurar que los datos enviados por el cliente sean correctos antes de tocar la base de datos:
+Se crearon las interfaces estrictas para asegurar que los datos enviados por el cliente sean correctos antes de tocar la
+base de datos:
 
-CreatePacienteDto
-UpdatePacienteDto
-CreateLaboratorioDto
+CreatePacienteDto UpdatePacienteDto CreateLaboratorioDto
 
 ### 2. Lógica de Negocio (Service)
 
@@ -254,13 +274,15 @@ Se implementaron 7 métodos que interactúan directamente con Prisma (Base de da
 - listPacientes: Implementa un sistema de búsqueda insensible a mayúsculas (busca por nombre o documento).
 - getPacienteById / updatePaciente / deletePaciente: Operaciones estándar con validación de existencia.
 - addLaboratorio: Registra pruebas de laboratorio asociadas a un paciente.
-- getExpedienteCompleto: Query compleja que trae al paciente junto con todo su historial de laboratorios y consultas ordenadas por fecha.
+- getExpedienteCompleto: Query compleja que trae al paciente junto con todo su historial de laboratorios y consultas
+  ordenadas por fecha.
 
 ### 3. Controladores
 
 pacientes.controller.ts
 
-Se enrutaron las peticiones HTTP hacia el servicio. Se incluyó un bloque try/catch riguroso en todos los métodos para atrapar errores y devolver los status codes correctos (200, 201, 400, 401, 404 y 500).
+Se enrutaron las peticiones HTTP hacia el servicio. Se incluyó un bloque try/catch riguroso en todos los métodos para
+atrapar errores y devolver los status codes correctos (200, 201, 400, 401, 404 y 500).
 
 ## 4. Rutas, Seguridad y Documentación
 
@@ -268,25 +290,28 @@ pacientes.routes.ts
 
 Se definieron los 7 endpoints requeridos.
 
-- Cada ruta está protegida por el authMiddleware (requiere un Bearer Token válido para ser consumida).
-- Se redactó documentación JSDoc para Swagger (@swagger) en cada ruta, especificando parámetros, cuerpos de petición de ejemplo y respuestas esperadas.
+- Cada ruta está protegida por el middlewareAuth (requiere un Bearer Token válido para ser consumida).
+- Se redactó documentación JSDoc para Swagger (@swagger) en cada ruta, especificando parámetros, cuerpos de petición de
+  ejemplo y respuestas esperadas.
 
 ### 5. Configuraciones Globales Modificadas
 
-A. Archivo index.ts
-Se agregó el router de pacientes en el prefijo oficial: app.use("/api/pacientes", routesPacientes);
-Se agregó el dominio de la documentación (http://localhost:3006) a la lista blanca de CORS para que Swagger UI no sea bloqueado.
-B. Archivo swagger.ts
-Se configuró el componente de seguridad securitySchemes: { bearerAuth: { type: "http", scheme: "bearer" } }. Esto habilitó el candado 🔓 interactivo en la interfaz de Swagger para probar endpoints protegidos directamente desde el navegador.
-C. Middlewares y Dependencias
-Se corrigieron los tipos de retorno estrictos en auth.middleware.ts para cumplir con las reglas del linter.
-Se instaló la librería @types/jsonwebtoken para evitar errores del compilador.
-D. Módulo de Autenticación (Login)
-Se modificó el endpoint `POST /api/auth/login` para que retorne el campo `id` del usuario autenticado junto con el token JWT. Esto implicó:
+A. Archivo app.ts Se agregó el router de pacientes en el prefijo oficial: app.use ("/api/pacientes", routesPacientes);
+Se agregó el dominio de la documentación (http://localhost:3006) a la lista blanca de CORS para que Swagger UI no sea
+bloqueado. B. Archivo configuration.swaggerdocumentation.ts Se configuró el componente de seguridad securitySchemes: {
+bearerAuth: { type: "http", scheme: "bearer" } }. Esto habilitó el candado 🔓 interactivo en la interfaz de Swagger para
+probar endpoints protegidos directamente desde el navegador. C. Middlewares y Dependencias Se corrigieron los tipos de
+retorno estrictos en middleware.auth.ts para cumplir con las reglas del linter. Se instaló la librería
+@types/jsonwebtoken para evitar errores del compilador. D. Módulo de Autenticación (Login)
+Se modificó el endpoint `POST /api/auth/login` para que retorne el campo `id` del usuario autenticado junto con el token
+JWT. Esto implicó:
 
-- Actualizar la firma del método `CheckLoginUserFromService` en `auth.service.ts` y la interfaz `LoginResponseDto` en `auth.types.user.ts`.
-- Modificar el controlador `AuthController.loginOfUserFromController` en `auth.controller.ts` para extraer y retornar dicho `id` en el cuerpo JSON de la respuesta.
-- Documentar este nuevo comportamiento con la propiedad `id` (integer) en la especificación OpenAPI/Swagger de `auth.routes.ts`.
+- Actualizar la firma del método `CheckLoginUserFromService` en `auth.service.ts` y la interfaz `LoginResponseDto` en
+  `auth.type.ts`.
+- Modificar el controlador `AuthController.loginOfUserFromController` en `auth.controller.ts` para extraer y retornar
+  dicho `id` en el cuerpo JSON de la respuesta.
+- Documentar este nuevo comportamiento con la propiedad `id` (integer) en la especificación OpenAPI/Swagger de
+  `auth.route.ts`.
 
 ### Pruebas Realizadas
 
@@ -301,23 +326,32 @@ Se modificó el endpoint `POST /api/auth/login` para que retorne el campo `id` d
 
 **Tickets cubiertos:** SCRUM-31, SCRUM-33, SCRUM-35
 
-Este documento detalla los cambios de estos 3 tickets, con foco especial en dejar claro **el contrato exacto de cada endpoint** (qué campos manda el cliente, qué campos devuelve el servidor) para que el equipo de Frontend pueda conectar sus pantallas sin adivinar.
+Este documento detalla los cambios de estos 3 tickets, con foco especial en dejar claro **el contrato exacto de cada
+endpoint** (qué campos manda el cliente, qué campos devuelve el servidor) para que el equipo de Frontend pueda conectar
+sus pantallas sin adivinar.
 
 ## Objetivo Cumplido
 
-- `GET /api/consulta/historial`: historial de consultas de IA del médico autenticado, con filtros por paciente y por rango de fechas.
+- `GET /api/consulta/historial`: historial de consultas de IA del médico autenticado, con filtros por paciente y por
+  rango de fechas.
 - Sistema de auditoría (`AuditLog`) conectado a 3 acciones: login, consulta a la IA y modificación de paciente.
-- CRUD de usuarios para administradores: `POST`, `GET` (lista y por id) y `PUT` en `/api/admin/usuarios`, restringido a rol `ADMIN`.
+- CRUD de usuarios para administradores: `POST`, `GET` (lista y por id) y `PUT` en `/api/admin/usuarios`, restringido a
+  rol `ADMIN`.
 
 ## Archivos Creados / Modificados
 
 - `Shared/utils/audit.helper.ts`: ahora escribe de verdad en la tabla `AuditLog` (antes solo hacía `console.log`).
-- `modules/consulta/`: `consulta.controller.ts`, `consulta.service.ts`, `consulta.routes.ts`, `consulta.dto.ts` (nuevo).
-- `modules/admin/`: `admin.controller.ts`, `admin.service.ts`, `admin.routes.ts`, `admin.dto.ts` (nuevo).
+- `modules/consulta/`: `consulta.controller.ts`, `consulta.service.ts`, `consulta.routes.ts`, `consultation.dto.ts`
+  (nuevo).
+- `modules/admin/`: `admin.controller.ts`, `admin.service.ts`, `admin.routes.ts`, `usuarios.administrador.dto.ts`
+  (nuevo).
 - `modules/auth/auth.service.ts`: se agregó el registro de auditoría tras un login exitoso.
-- `modules/pacientes/pacientes.controller.ts` y `pacientes.service.ts`: se agregó el registro de auditoría en `updatePaciente`, y por eso `updatePaciente` ahora recibe también el `userId` de quien hace el cambio.
-- `controllers/consult.response.ai.controller.ts`: se agregó el registro de auditoría tras una respuesta exitosa de la IA.
-- `index.ts`: se montaron las rutas `/api/consulta` y `/api/admin/usuarios`, que existían en el código pero nunca se habían registrado en la app.
+- `modules/pacientes/pacientes.controller.ts` y `pacientes.service.ts`: se agregó el registro de auditoría en
+  `updatePaciente`, y por eso `updatePaciente` ahora recibe también el `userId` de quien hace el cambio.
+- `controllers/consult.response.ai.controller.ts`: se agregó el registro de auditoría tras una respuesta exitosa de la
+  IA.
+- `app.ts`: se montaron las rutas `/api/consulta` y `/api/admin/usuarios`, que existían en el código pero nunca se
+  habían registrado en la app.
 
 ## Contratos de API (para el equipo de Frontend)
 
@@ -328,6 +362,7 @@ Requiere `Authorization: Bearer <token>` de un usuario con rol `DOCTOR`.
 Query params opcionales: `pacienteId` (número), `fechaInicio` (fecha ISO), `fechaFin` (fecha ISO).
 
 Respuesta `200`:
+
 ```json
 {
   "historial": [
@@ -353,36 +388,64 @@ Respuesta `200`:
 Requieren `Authorization: Bearer <token>` de un usuario con rol `ADMIN` (un `DOCTOR` recibe `403`).
 
 `POST /api/admin/usuarios` — body: `{ "nombre", "email", "password", "rol": "ADMIN"|"DOCTOR" }` → `201` con:
+
 ```json
-{ "usuario": { "id": 4, "nombre": "Dr. Juan Pérez", "email": "juan@hospital.com", "rol": "DOCTOR", "activo": true, "creadoEn": "2026-07-05T10:00:00.000Z" } }
+{
+  "usuario": {
+    "id": 4,
+    "nombre": "Dr. Juan Pérez",
+    "email": "juan@hospital.com",
+    "rol": "DOCTOR",
+    "activo": true,
+    "creadoEn": "2026-07-05T10:00:00.000Z"
+  }
+}
 ```
 
 `GET /api/admin/usuarios` → `{ "usuarios": [ {...igual que arriba...}, ... ] }`
 
-`PUT /api/admin/usuarios/{id}` — body opcional: `{ "nombre"?, "email"?, "rol"?, "activo"? }`. Para **desactivar** un usuario: `{ "activo": false }`. → `200` con el usuario actualizado. Ninguna respuesta de este módulo incluye jamás el campo `password`.
+`PUT /api/admin/usuarios/{id}` — body opcional: `{ "nombre"?, "email"?, "rol"?, "activo"? }`. Para **desactivar** un
+usuario: `{ "activo": false }`. → `200` con el usuario actualizado. Ninguna respuesta de este módulo incluye jamás el
+campo `password`.
 
 ## ⚠️ Nota para el equipo de Frontend: desajuste de contrato detectado
 
-Al revisar `doctor/historial/index.tsx` y `admin/medicos/index.tsx` (rama `develop`), notamos que ambas pantallas usan datos mock (`CONSULTAS`, `MEDICOS`) con tipos que **no coinciden** con lo que el backend real devuelve. Esto es normal en un proyecto en paralelo, pero hay que resolverlo antes de conectar:
+Al revisar `doctor/historial/index.tsx` y `admin/medicos/index.tsx` (rama `develop`), notamos que ambas pantallas usan
+datos mock (`CONSULTAS`, `MEDICOS`) con tipos que **no coinciden** con lo que el backend real devuelve. Esto es normal
+en un proyecto en paralelo, pero hay que resolverlo antes de conectar:
 
 **En `historial`:**
-- `fecha`, `hora`, `iniciales` → se pueden derivar en el frontend a partir de `createdAt` y `paciente.nombre`. No requieren cambio de backend.
-- `diagnostico` (frase corta) → el backend devuelve `output`, el texto/JSON completo de la IA, no una frase corta. Hay que decidir si el frontend parsea ese JSON o si se pide un campo resumen adicional.
-- `tipoDx` (categoría fija: Hypertension, Diabetes...) → **no existe** en el modelo `Consulta` y no se puede derivar de forma confiable del texto libre. Requiere decisión de equipo.
-- `medico`, `medicoColor` → no aplica: este endpoint siempre es el historial del médico autenticado (ya lo tienen guardado en `authentication-store`).
-- `status: COMPLETED|PENDING|URGENT` → esto es un estado de flujo de trabajo. El backend tiene `nivelRiesgo: Alto|Medio|Bajo`, que es un **concepto clínico distinto** (riesgo, no estado de proceso). No renombrar uno por otro sin discutirlo — una consulta de IA no queda "pendiente", se genera y persiste de inmediato.
+
+- `fecha`, `hora`, `iniciales` → se pueden derivar en el frontend a partir de `createdAt` y `paciente.nombre`. No
+  requieren cambio de backend.
+- `diagnostico` (frase corta) → el backend devuelve `output`, el texto/JSON completo de la IA, no una frase corta. Hay
+  que decidir si el frontend parsea ese JSON o si se pide un campo resumen adicional.
+- `tipoDx` (categoría fija: Hypertension, Diabetes...) → **no existe** en el modelo `Consulta` y no se puede derivar de
+  forma confiable del texto libre. Requiere decisión de equipo.
+- `medico`, `medicoColor` → no aplica: este endpoint siempre es el historial del médico autenticado (ya lo tienen
+  guardado en `authentication-store`).
+- `status: COMPLETED|PENDING|URGENT` → esto es un estado de flujo de trabajo. El backend tiene
+  `nivelRiesgo: Alto|Medio|Bajo`, que es un **concepto clínico distinto** (riesgo, no estado de proceso). No renombrar
+  uno por otro sin discutirlo — una consulta de IA no queda "pendiente", se genera y persiste de inmediato.
 
 **En `admin/medicos`:**
+
 - `iniciales` → derivable de `nombre` en frontend.
-- `estado: ACTIVO|INACTIVO|PENDIENTE` → el backend solo tiene `activo: boolean` (2 estados). No existe un tercer estado "pendiente" en el flujo actual (un admin crea el usuario y ya queda activo).
-- `especialidad`, `licencia`, `telefono`, `pacientes` (conteo), `consultasHoy` (conteo), `calificacion` → **no existen en el modelo `User`** de `schema.prisma`. Si el equipo los necesita, hay que agregarlos al esquema (columna del DBA) antes de que el backend pueda devolverlos — no es algo que el frontend pueda resolver por su cuenta.
+- `estado: ACTIVO|INACTIVO|PENDIENTE` → el backend solo tiene `activo: boolean` (2 estados). No existe un tercer estado
+  "pendiente" en el flujo actual (un admin crea el usuario y ya queda activo).
+- `especialidad`, `licencia`, `telefono`, `pacientes` (conteo), `consultasHoy` (conteo), `calificacion` → **no existen
+  en el modelo `User`** de `schema.prisma`. Si el equipo los necesita, hay que agregarlos al esquema (columna del DBA)
+  antes de que el backend pueda devolverlos — no es algo que el frontend pueda resolver por su cuenta.
 
 ## Pruebas Realizadas
 
 - `npx tsc --noEmit`: 0 errores nuevos (los únicos pendientes son preexistentes y no relacionados a este sprint).
 - `npm run lint`: 0 errores nuevos introducidos.
-- Verificado en Swagger (`/api-docs`) con usuario admin del seed: login → token → `POST/GET/PUT /admin/usuarios` funcionando y devolviendo `403` correctamente cuando se prueba con un token de rol `DOCTOR`.
-- `GET /consulta/historial` verificado con filtros `pacienteId`, `fechaInicio`, `fechaFin` contra datos insertados manualmente vía Prisma Studio (el endpoint que crea consultas reales, `POST /api/consulta`, aún no está implementado — corresponde a otro ticket).
+- Verificado en Swagger (`/api-docs`) con usuario admin del seed: login → token → `POST/GET/PUT /admin/usuarios`
+  funcionando y devolviendo `403` correctamente cuando se prueba con un token de rol `DOCTOR`.
+- `GET /consulta/historial` verificado con filtros `pacienteId`, `fechaInicio`, `fechaFin` contra datos insertados
+  manualmente vía Prisma Studio (el endpoint que crea consultas reales, `POST /api/consulta`, aún no está implementado —
+  corresponde a otro ticket).
 
 ---
 
@@ -390,7 +453,8 @@ Al revisar `doctor/historial/index.tsx` y `admin/medicos/index.tsx` (rama `devel
 
 ### [ DONE ]
 
-- **Sprint 0 (Actual - Entregable 1):** Diseño e implementación de base de datos, Docker, configuraciones de variables, inicialización de datos de prueba (seed) y esqueleto de directorios modulares.
+- **Sprint 0 (Actual - Entregable 1):** Diseño e implementación de base de datos, Docker, configuraciones de variables,
+  inicialización de datos de prueba (seed) y esqueleto de directorios modulares.
 
 ---
 
@@ -402,7 +466,9 @@ Al revisar `doctor/historial/index.tsx` y `admin/medicos/index.tsx` (rama `devel
 
 ### [ PARCIAL ]
 
-- **Sprint 3 (parcial):** Historial de consultas (`GET /api/consulta/historial`), sistema de AuditLog (login, consulta IA, modificación de paciente) y CRUD de usuarios para Admin (`SCRUM-31`, `SCRUM-33`, `SCRUM-35`). Pendiente de este sprint: `POST /api/consulta` (creación de la consulta diagnóstica con Gemini) — ver sección arriba.
+- **Sprint 3 (parcial):** Historial de consultas (`GET /api/consulta/historial`), sistema de AuditLog (login, consulta
+  IA, modificación de paciente) y CRUD de usuarios para Admin (`SCRUM-31`, `SCRUM-33`, `SCRUM-35`). Pendiente de este
+  sprint: `POST /api/consulta` (creación de la consulta diagnóstica con Gemini) — ver sección arriba.
 
 ---
 
@@ -410,4 +476,3 @@ Al revisar `doctor/historial/index.tsx` y `admin/medicos/index.tsx` (rama `devel
 - **Sprint 4:** Métricas administrativas, control de versiones del prompt y gestión de médicos.
 - **Sprint 5:** Suite de pruebas con Jest y verificación de seguridad con Helmet/Rate Limiting.
 - **Sprint 6:** Pruebas finales de QA, optimización de queries y despliegue a Railway/Render.
-
