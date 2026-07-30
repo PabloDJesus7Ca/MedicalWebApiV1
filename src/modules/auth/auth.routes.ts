@@ -98,7 +98,11 @@ const router: Router = Router();
  *               type: string
  *               example: Estamos experimentando muchas solicitudes desde esta IP, por favor intente más tarde.
  */
-router.post("/login", LoginLimiter, validationRequest(CheckTypeLoginSchema), AuthController.loginOfUserFromController);
+router.post(
+  "/login",
+  LoginLimiter,
+  validationRequest(CheckTypeLoginSchema),
+  AuthController.loginOfUserFromController
+);
 
 export default router;
-

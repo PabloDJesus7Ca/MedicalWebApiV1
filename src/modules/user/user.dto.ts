@@ -5,7 +5,7 @@ export const CreateUsuarioAdminDto = z.object({
   nombre: z
     .string({ error: "Nombre es un campo requerido" })
     .trim()
-    .max(20, { error: "EL maximo de caracteres permitidos son 30 caracteres" })
+    .max(20, { error: "EL maximo de caracteres permitidos son 20 caracteres" })
     .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, { error: "Solo se permiten letras" }),
   email: z.email({ pattern: z.regexes.email, error: "El email debe ser un campo valido" }).trim(),
   password: z

@@ -1,12 +1,15 @@
 import { prisma } from "@/config/lib/prisma";
+import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+
+dotenv.config();
 
 async function main() {
   console.log("Iniciando el sembrado de datos (seed)...");
 
   // 1. Crear el primer usuario administrador por defecto
-  const adminEmail = "admin@medreason.ai";
-  const defaultPassword = "AdminPassword123!";
+  const adminEmail = process.env.ADMIN_EMAIL as string;
+  const defaultPassword = process.env.ADMIN_PASSWORD as string;
 
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail },
