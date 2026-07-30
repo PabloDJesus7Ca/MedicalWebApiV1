@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { authMiddleware, checkRoleMiddleware } from "../../../Shared/middlewares/auth.middleware";
-import { Rol } from "../../../generated/prisma";
-import { LogsController } from "./log.controller";
+import { checkRoleMiddleware, middlewareAuth } from "@shared/middleware/auth.middleware";
+import { Rol } from "@/generated/prisma";
+import { LogsController } from "./audit.controller";
 
 const router: Router = Router();
 
@@ -101,7 +101,7 @@ const router: Router = Router();
  *       500:
  *         description: Error al obtener logs
  */
-router.get("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), LogsController.listLogs);
+router.get("/", middlewareAuth, checkRoleMiddleware(Rol.ADMIN), LogsController.listLogs);
 
 /**
  * @swagger
@@ -137,6 +137,6 @@ router.get("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), LogsController.l
  *       500:
  *         description: Error al obtener métricas
  */
-router.get("/metricas", authMiddleware, checkRoleMiddleware(Rol.ADMIN), LogsController.getMetricas);
+router.get("/metricas", middlewareAuth, checkRoleMiddleware(Rol.ADMIN), LogsController.getMetricas);
 
 export default router;

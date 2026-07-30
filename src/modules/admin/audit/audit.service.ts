@@ -1,5 +1,5 @@
-import { prisma } from "../../../configurations/lib/prisma";
-import { AuditLog } from "../../../generated/prisma";
+import { prisma } from "@/config/lib/prisma";
+import { AuditLog } from "@generated/prisma";
 
 export interface LogFilters {
   usuario?: string;
@@ -46,14 +46,14 @@ export class LogsService {
     const where: Record<string, unknown> = {};
 
     if (filters.tipoAccion) {
-      where.accion = { contains: filters.tipoAccion, mode: 'insensitive' };
+      where.accion = { contains: filters.tipoAccion, mode: "insensitive" };
     }
 
     if (filters.usuario) {
       where.user = {
         OR: [
-          { nombre: { contains: filters.usuario, mode: 'insensitive' } },
-          { email: { contains: filters.usuario, mode: 'insensitive' } },
+          { nombre: { contains: filters.usuario, mode: "insensitive" } },
+          { email: { contains: filters.usuario, mode: "insensitive" } },
         ],
       };
     }
@@ -70,7 +70,7 @@ export class LogsService {
     const [data, total] = await Promise.all([
       prisma.auditLog.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip: offset,
         take: pageSize,
         include: { user: { select: { id: true, nombre: true, email: true } } },

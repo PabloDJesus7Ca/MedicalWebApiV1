@@ -1,6 +1,6 @@
 import { Response } from "express";
-import { AuthRequest } from "../../../Shared/middlewares/auth.middleware";
-import { LogFilters, LogsService } from "./log.service";
+import { AuthRequest } from "@shared/middleware/auth.middleware";
+import { LogFilters, LogsService } from "./audit.service";
 
 export class LogsController {
   public static async listLogs(req: AuthRequest, res: Response) {
@@ -19,7 +19,9 @@ export class LogsController {
       return res.json(result);
     } catch (error) {
       console.error("Error fetching logs:", error);
-      return res.status(500).json({ message: "Error fetching logs" });
+      return res
+        .status(500)
+        .json({ message: "Error interno al obtener el registro de auditoría." });
     }
   }
 
@@ -29,7 +31,9 @@ export class LogsController {
       return res.json(metricas);
     } catch (error) {
       console.error("Error fetching metrics:", error);
-      return res.status(500).json({ message: "Error fetching metrics" });
+      return res
+        .status(500)
+        .json({ message: "Error interno al obtener las métricas de auditoría." });
     }
   }
 }
