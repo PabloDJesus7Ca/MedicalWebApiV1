@@ -1,13 +1,19 @@
 import { Router } from "express";
-import { IaConfigController } from "./ia-config.controller";
-import { authMiddleware, checkRoleMiddleware } from "../../../Shared/middlewares/auth.middleware";
-import { Rol } from "../../../generated/prisma";
+import { IaConfigController } from "./ai-config.controller";
+import { checkRoleMiddleware, middlewareAuth } from "@shared/middleware/auth.middleware";
+import { Rol } from "@/generated/prisma";
+import { validationRequest } from "@shared/middleware/validation.middleware";
+import {
+  CreatePromptVersionSchema,
+  UpdateConfigSchema,
+  UpdatePromptVersionSchema,
+} from "./ai-config.dto";
 
 const router: Router = Router();
 
 /**
  * @swagger
- * /admin/config:
+ * /admin/configSystem:
  *   get:
  *     summary: Obtiene la configuración actual de la IA
  *     tags: [Admin - IA Config]
@@ -21,7 +27,7 @@ const router: Router = Router();
  *             schema:
  *               type: object
  *               properties:
- *                 config:
+ *                 configSystem:
  *                   type: object
  *                   properties:
  *                     id:
@@ -39,13 +45,48 @@ const router: Router = Router();
  *       403:
  *         description: No tiene rol ADMIN
  */
-router.get("/models", authMiddleware, checkRoleMiddleware(Rol.ADMIN), IaConfigController.listModels);
-
-router.get("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), IaConfigController.getConfig);
 
 /**
  * @swagger
- * /admin/config:
+ * /admin/configSystem/models:
+ *   get:
+ *     summary: Lista los modelos de Inteligencia Artificial disponibles
+ *     description: Consulta a la API de Gemini y retorna un listado con los nombres de los modelos disponibles y compatibles para procesar consultas médicas. Solo accesible por administradores.
+ *     tags: [Admin - IA Config]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de modelos obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 models:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["gemini-3-flash-preview", "gemini-2.5-pro", "gemini-2.5-flash"]
+ *       401:
+ *         description: No autenticado, falta token JWT o expiró
+ *       403:
+ *         description: No tiene rol ADMIN para acceder a la configuración del sistema
+ *       500:
+ *         description: Error interno al comunicarse con el proveedor de IA
+ */
+router.get(
+  "/models",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.ADMIN),
+  IaConfigController.listModels
+);
+
+router.get("/", middlewareAuth, checkRoleMiddleware(Rol.ADMIN), IaConfigController.getConfig);
+
+/**
+ * @swagger
+ * /admin/configSystem:
  *   put:
  *     summary: Actualiza la configuración de la IA
  *     tags: [Admin - IA Config]
@@ -63,27 +104,55 @@ router.get("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), IaConfigControll
  *                 example: "gemini-2.5-flash"
  *               maxTokens:
  *                 type: integer
+ *                 maximum: 8192
  *                 example: 4000
  *               temperatura:
  *                 type: number
+ *                 minimum: 0
+ *                 maximum: 2
  *                 example: 0.1
  *               systemPrompt:
  *                 type: string
+ *                 minLength: 10
  *     responses:
  *       200:
  *         description: Configuración actualizada
  *       400:
- *         description: Error en los datos
+ *         description: Error de validación en los datos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                       message:
+ *                         type: string
  *       401:
  *         description: No autenticado
  *       403:
  *         description: No tiene rol ADMIN
+ *       500:
+ *         description: Error interno al actualizar la configuración
  */
-router.put("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), IaConfigController.updateConfig);
+router.put(
+  "/",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.ADMIN),
+  validationRequest(UpdateConfigSchema),
+  IaConfigController.updateConfig
+);
 
 /**
  * @swagger
- * /admin/config/prompt-versions:
+ * /admin/configSystem/prompt-versions:
  *   get:
  *     summary: Lista todas las versiones de prompt
  *     tags: [Admin - IA Config]
@@ -134,9 +203,11 @@ router.put("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), IaConfigControll
  *             properties:
  *               version:
  *                 type: string
+ *                 minLength: 1
  *                 example: "v1.1"
  *               contenido:
  *                 type: string
+ *                 minLength: 10
  *               activo:
  *                 type: boolean
  *                 default: false
@@ -144,18 +215,45 @@ router.put("/", authMiddleware, checkRoleMiddleware(Rol.ADMIN), IaConfigControll
  *       201:
  *         description: Versión creada
  *       400:
- *         description: Error en los datos
+ *         description: Error de validación en los datos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                       message:
+ *                         type: string
  *       401:
  *         description: No autenticado
  *       403:
  *         description: No tiene rol ADMIN
  */
-router.get("/prompt-versions", authMiddleware, checkRoleMiddleware(Rol.ADMIN), IaConfigController.listPromptVersions);
-router.post("/prompt-versions", authMiddleware, checkRoleMiddleware(Rol.ADMIN), IaConfigController.createPromptVersion);
+router.get(
+  "/prompt-versions",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.ADMIN),
+  IaConfigController.listPromptVersions
+);
+router.post(
+  "/prompt-versions",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.ADMIN),
+  validationRequest(CreatePromptVersionSchema),
+  IaConfigController.createPromptVersion
+);
 
 /**
  * @swagger
- * /admin/config/prompt-versions/{id}:
+ * /admin/configSystem/prompt-versions/{id}:
  *   put:
  *     summary: Actualiza una versión de prompt
  *     tags: [Admin - IA Config]
@@ -176,13 +274,17 @@ router.post("/prompt-versions", authMiddleware, checkRoleMiddleware(Rol.ADMIN), 
  *             properties:
  *               version:
  *                 type: string
+ *                 minLength: 1
  *               contenido:
  *                 type: string
+ *                 minLength: 10
  *               activo:
  *                 type: boolean
  *     responses:
  *       200:
  *         description: Versión actualizada
+ *       400:
+ *         description: Error de validación
  *       404:
  *         description: No encontrada
  *       401:
@@ -190,11 +292,17 @@ router.post("/prompt-versions", authMiddleware, checkRoleMiddleware(Rol.ADMIN), 
  *       403:
  *         description: No tiene rol ADMIN
  */
-router.put("/prompt-versions/:id", authMiddleware, checkRoleMiddleware(Rol.ADMIN), IaConfigController.updatePromptVersion);
+router.put(
+  "/prompt-versions/:id",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.ADMIN),
+  validationRequest(UpdatePromptVersionSchema),
+  IaConfigController.updatePromptVersion
+);
 
 /**
  * @swagger
- * /admin/config/prompt-versions/{id}/activate:
+ * /admin/configSystem/prompt-versions/{id}/activate:
  *   put:
  *     summary: Activa una versión de prompt (desactiva las demás)
  *     tags: [Admin - IA Config]
@@ -216,6 +324,11 @@ router.put("/prompt-versions/:id", authMiddleware, checkRoleMiddleware(Rol.ADMIN
  *       403:
  *         description: No tiene rol ADMIN
  */
-router.put("/prompt-versions/:id/activate", authMiddleware, checkRoleMiddleware(Rol.ADMIN), IaConfigController.activatePromptVersion);
+router.put(
+  "/prompt-versions/:id/activate",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.ADMIN),
+  IaConfigController.activatePromptVersion
+);
 
 export default router;

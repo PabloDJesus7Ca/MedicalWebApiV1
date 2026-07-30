@@ -1,6 +1,6 @@
 import { Response } from "express";
-import { AuthRequest } from "../../../Shared/middlewares/auth.middleware";
-import { IaConfigService } from "./ia-config.service";
+import { AuthRequest } from "@shared/middleware/auth.middleware";
+import { IaConfigService } from "./ai-config.service";
 
 export class IaConfigController {
   static async listModels(_request: AuthRequest, response: Response) {
@@ -9,7 +9,7 @@ export class IaConfigController {
       return response.status(200).json({ models });
     } catch (error: unknown) {
       if (error instanceof Error) return response.status(500).json({ message: error.message });
-      return response.status(500).json({ message: "Error desconocido." });
+      return response.status(500).json({ message: "Error interno al listar los modelos de IA." });
     }
   }
 
@@ -19,20 +19,25 @@ export class IaConfigController {
       return response.status(200).json({ config });
     } catch (error: unknown) {
       if (error instanceof Error) return response.status(500).json({ message: error.message });
-      return response.status(500).json({ message: "Error desconocido." });
+      return response
+        .status(500)
+        .json({ message: "Error interno al obtener la configuración de IA." });
     }
   }
 
   static async updateConfig(request: AuthRequest, response: Response) {
     try {
-      const adminUserId = request.user?.id;
-      if (!adminUserId) return response.status(401).json({ message: "No autenticado." });
+      const adminUser = request.user;
+      if (!adminUser)
+        return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
 
-      const config = await IaConfigService.updateConfig(adminUserId, request.body);
+      const config = await IaConfigService.updateConfig(adminUser, request.body);
       return response.status(200).json({ config });
     } catch (error: unknown) {
       if (error instanceof Error) return response.status(400).json({ message: error.message });
-      return response.status(500).json({ message: "Error desconocido." });
+      return response
+        .status(500)
+        .json({ message: "Error interno al actualizar la configuración de IA." });
     }
   }
 
@@ -42,60 +47,76 @@ export class IaConfigController {
       return response.status(200).json({ versions });
     } catch (error: unknown) {
       if (error instanceof Error) return response.status(500).json({ message: error.message });
-      return response.status(500).json({ message: "Error desconocido." });
+      return response
+        .status(500)
+        .json({ message: "Error interno al listar las versiones de prompts." });
     }
   }
 
   static async createPromptVersion(request: AuthRequest, response: Response) {
     try {
-      const adminUserId = request.user?.id;
-      if (!adminUserId) return response.status(401).json({ message: "No autenticado." });
+      const adminUser = request.user;
+      if (!adminUser)
+        return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
 
       const { version, contenido } = request.body;
-      if (!version || typeof version !== "string") {
-        return response.status(400).json({ message: "version es requerida." });
-      }
-      if (!contenido || typeof contenido !== "string") {
-        return response.status(400).json({ message: "contenido es requerido." });
-      }
 
-      const pv = await IaConfigService.createPromptVersion(adminUserId, { version: version.trim(), contenido: contenido.trim(), activo: request.body.activo });
+
+      const pv = await IaConfigService.createPromptVersion(adminUser, {
+        version: version.trim(),
+        contenido: contenido.trim(),
+        activo: request.body.activo,
+      });
       return response.status(201).json({ version: pv });
     } catch (error: unknown) {
       if (error instanceof Error) return response.status(400).json({ message: error.message });
-      return response.status(500).json({ message: "Error desconocido." });
+      return response
+        .status(500)
+        .json({ message: "Error interno al crear la versión del prompt." });
     }
   }
 
   static async updatePromptVersion(request: AuthRequest, response: Response) {
     try {
-      const adminUserId = request.user?.id;
-      if (!adminUserId) return response.status(401).json({ message: "No autenticado." });
+      const adminUser = request.user;
+      if (!adminUser)
+        return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
 
       const id = Number(request.params["id"]);
-      if (isNaN(id)) return response.status(400).json({ message: "ID inválido." });
+      if (isNaN(id))
+        return response
+          .status(400)
+          .json({ message: "El ID de la versión del prompt es inválido." });
 
-      const pv = await IaConfigService.updatePromptVersion(id, adminUserId, request.body);
+      const pv = await IaConfigService.updatePromptVersion(id, adminUser, request.body);
       return response.status(200).json({ version: pv });
     } catch (error: unknown) {
       if (error instanceof Error) return response.status(404).json({ message: error.message });
-      return response.status(500).json({ message: "Error desconocido." });
+      return response
+        .status(500)
+        .json({ message: "Error interno al actualizar la versión del prompt." });
     }
   }
 
   static async activatePromptVersion(request: AuthRequest, response: Response) {
     try {
-      const adminUserId = request.user?.id;
-      if (!adminUserId) return response.status(401).json({ message: "No autenticado." });
+      const adminUser = request.user;
+      if (!adminUser)
+        return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
 
       const id = Number(request.params["id"]);
-      if (isNaN(id)) return response.status(400).json({ message: "ID inválido." });
+      if (isNaN(id))
+        return response
+          .status(400)
+          .json({ message: "El ID de la versión del prompt es inválido." });
 
-      const pv = await IaConfigService.activatePromptVersion(id, adminUserId);
+      const pv = await IaConfigService.activatePromptVersion(id, adminUser);
       return response.status(200).json({ version: pv });
     } catch (error: unknown) {
       if (error instanceof Error) return response.status(404).json({ message: error.message });
-      return response.status(500).json({ message: "Error desconocido." });
+      return response
+        .status(500)
+        .json({ message: "Error interno al activar la versión del prompt." });
     }
   }
 }

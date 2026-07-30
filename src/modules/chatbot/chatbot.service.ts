@@ -1,7 +1,7 @@
-import { ai, type GenerateContentConfig } from "../../Shared/utils/genai";
-import { prisma } from "../../configurations/lib/prisma";
+import { ai, type GenerateContentConfig } from "@shared/utils/ai.helper";
+import { prisma } from "@/config/lib/prisma";
 import { AskQuestionDto } from "./chatbot.dto";
-import { logAudit } from "../../Shared/utils/audit.helper";
+import { logAudit } from "@shared/utils/audit.helper";
 
 export class ChatbotService {
   static async askQuestion(doctorId: number, dto: AskQuestionDto) {
@@ -15,7 +15,9 @@ export class ChatbotService {
       throw new Error("Consulta no encontrada.");
     }
     if (consulta.doctorId !== doctorId) {
-      throw new Error("No tienes permiso para acceder a esta consulta.");
+      throw new Error(
+        "Acceso denegado. No tienes los permisos necesarios para acceder a esta consulta."
+      );
     }
 
     const config = await prisma.config.findFirst();
@@ -53,7 +55,13 @@ export class ChatbotService {
       data: { tokens: { increment: tokens } },
     });
 
-    await logAudit(doctorId, 'CONSULTA_AI', 'ChatbotAnswer', chatbotAnswer.id, `Pregunta sobre consulta #${dto.consultaId} (${tokens} tokens)`);
+    await logAudit(
+      doctorId,
+      "CONSULTA_AI",
+      "ChatbotAnswer",
+      chatbotAnswer.id,
+      `Pregunta sobre consulta #${dto.consultaId} (${tokens} tokens)`
+    );
 
     return { answer, tokens };
   }

@@ -1,7 +1,9 @@
 import { Router } from "express";
 import { ChatbotController } from "./chatbot.controller";
-import { authMiddleware, checkRoleMiddleware } from "../../Shared/middlewares/auth.middleware";
-import { Rol } from "../../generated/prisma";
+import { checkRoleMiddleware, middlewareAuth } from "@shared/middleware/auth.middleware";
+import { Rol } from "@/generated/prisma";
+import { validationRequest } from "@shared/middleware/validation.middleware";
+import { AskQuestionSchema } from "./chatbot.dto";
 
 const router: Router = Router();
 
@@ -31,6 +33,7 @@ const router: Router = Router();
  *                 example: 1
  *               question:
  *                 type: string
+ *                 minLength: 5
  *                 description: Pregunta del médico sobre el caso clínico
  *                 example: "¿Qué exámenes de laboratorio recomendaría para este paciente?"
  *     responses:
@@ -45,17 +48,28 @@ const router: Router = Router();
  *                   type: string
  *                   description: Respuesta del asistente IA
  *       400:
- *         description: Datos inválidos o consulta no encontrada
+ *         description: Error de validación en los datos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       field:
+ *                         type: string
+ *                       message:
+ *                         type: string
  *       401:
  *         description: Token no proporcionado o inválido
  *       403:
  *         description: El usuario autenticado no tiene rol DOCTOR
  */
-router.post(
-  "/ask",
-  authMiddleware,
-  checkRoleMiddleware(Rol.DOCTOR),
-  ChatbotController.ask
-);
+router.post("/ask", middlewareAuth, checkRoleMiddleware(Rol.DOCTOR), validationRequest(AskQuestionSchema), ChatbotController.ask);
 
 export default router;
