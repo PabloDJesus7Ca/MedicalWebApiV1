@@ -21,7 +21,7 @@ model User {
   activo    Boolean    @default(true)
   rol       Rol
   creadoEn  DateTime   @default(now())
-  
+
   // Relaciones
   pacientes Paciente[] @relation("PacienteCreador")
   consultas Consulta[] @relation("DoctorConsulta")
