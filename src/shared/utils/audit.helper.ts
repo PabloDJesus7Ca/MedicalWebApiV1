@@ -1,23 +1,23 @@
-import { prisma } from "../../configurations/lib/prisma";
+import { prisma } from "@/config/lib/prisma";
 
 export type AuditAction =
-  | 'CREATE'
-  | 'READ'
-  | 'UPDATE'
-  | 'DELETE'
-  | 'LOGIN'
-  | 'LOGOUT'
-  | 'EXPORT'
-  | 'ERROR'
-  | 'AUTH_FAILED'
-  | 'CONSULTA_AI'
+  | "CREATE"
+  | "READ"
+  | "UPDATE"
+  | "DELETE"
+  | "LOGIN"
+  | "LOGOUT"
+  | "EXPORT"
+  | "ERROR"
+  | "AUTH_FAILED"
+  | "CONSULTA_AI";
 
 /**
  * Registra una acción de auditoría de forma inmutable en la tabla AuditLog.
  *
  * Este helper nunca debe interrumpir el flujo principal de la petición: si el
  * registro de auditoría falla (por ejemplo, un problema puntual de base de datos),
- * el error se captura y se reporta por consola, pero no se relanza.
+ * el class se captura y se reporta por consola, pero no se relanza.
  *
  * @param userId    Id del usuario autenticado que ejecuta la acción.
  * @param accion    Nombre de la acción realizada (ej: "LOGIN", "CONSULTA_IA", "MODIFICACION_PACIENTE").
@@ -39,10 +39,10 @@ export const logAudit = async (
         accion,
         entidad,
         entidadId: entidadId ?? null,
-        detalle: detalle ?? '',
+        detalle: detalle ?? "",
       },
     });
   } catch (error) {
-    console.error('[AuditLog] Error al registrar auditoría:', error);
+    console.error("[AuditLog] Error al registrar auditoría:", error);
   }
 };

@@ -1,5 +1,5 @@
 import swaggerJsdoc from "swagger-jsdoc";
-import { config } from "./configs";
+import { configSystem } from "@/config/system.config";
 
 const options = {
   definition: {
@@ -11,7 +11,7 @@ const options = {
     },
     servers: [
       {
-        url: `http://localhost:${config.PORT}/api`,
+        url: `http://localhost:${configSystem.PORT}/api`,
       },
     ],
     components: {

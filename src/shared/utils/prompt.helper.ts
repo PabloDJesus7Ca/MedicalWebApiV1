@@ -1,5 +1,5 @@
 // TODO: Implementar formateador estructurado de prompt clínico (BE-11)
-export const formatPrompt = (SugestAiAnswerDignostic: string) => {
+export const utilsFormatPrompt = (SugestAiAnswerDignostic: string) => {
   try {
     if (!SugestAiAnswerDignostic) return "";
 

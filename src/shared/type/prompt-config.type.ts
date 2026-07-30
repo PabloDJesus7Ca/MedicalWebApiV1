@@ -1,7 +1,4 @@
-type SYSTEM_PROMPT = string;
-export const ListOfDomainsVerified: string[] = [""];
-export const ListOfMethodsALlowed: string[] = [""];
-
+export type SYSTEM_PROMPT = string;
 export const System: SYSTEM_PROMPT = `Eres un asistente clínico para médicos.
 Tu función es analizar síntomas, antecedentes y hallazgos clínicos del paciente.
 

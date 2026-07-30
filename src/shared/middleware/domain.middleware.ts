@@ -1,6 +1,6 @@
 import { CorsOptions } from "cors";
-import { CorsOriginOptions } from "../../configurations/configs";
-import { ListOfDomainsVerified, ListOfMethodsALlowed } from "../../configurations/constant";
+import { CorsOriginOptions } from "@config/system.config";
+import { ListOfDomainsVerified, ListOfMethodsALlowed } from "@shared/constant/system.constant";
 
 export const checkDomianServerCors = ({
   ListOfDomainType = ListOfDomainsVerified,
@@ -14,7 +14,9 @@ export const checkDomianServerCors = ({
       if (!origin || ListOfDomainType.includes(origin)) {
         return callback(null, true);
       }
-      return callback(new Error("We cannot allow you to send requests to this server."));
+      return callback(
+        new Error("Acceso denegado por CORS: El dominio de origen no está autorizado.")
+      );
     },
     methods,
   };
