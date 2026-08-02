@@ -70,6 +70,12 @@ const router: Router = Router();
  *       403:
  *         description: El usuario autenticado no tiene rol DOCTOR
  */
-router.post("/ask", middlewareAuth, checkRoleMiddleware(Rol.DOCTOR), validationRequest(AskQuestionSchema), ChatbotController.ask);
+router.post(
+  "/ask",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.DOCTOR),
+  validationRequest(AskQuestionSchema),
+  ChatbotController.ask
+);
 
 export default router;

@@ -1,3 +1,4 @@
+import { logger } from "@modules/observability/logger";
 import { Response } from "express";
 import { AuthRequest } from "@shared/middleware/auth.middleware";
 import { AdminUsuariosService } from "./user.service";
@@ -26,7 +27,8 @@ export class AdminUsuarioController {
       return response.status(200).json({ usuarios });
     } catch (error: unknown) {
       if (error instanceof Error) {
-        return response.status(500).json({ message: error.message });
+        logger.error({ error: error.message, stack: error.stack }, "Error fatal capturado en controlador");
+        return response.status(500).json({ message: "Error interno del servidor. Por favor, contacta al administrador." });
       }
       return response.status(500).json({ message: "Error interno al listar los usuariosDelte." });
     }

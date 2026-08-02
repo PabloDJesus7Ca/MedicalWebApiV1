@@ -1,6 +1,7 @@
 # Medical AI Backend
 
-Backend desarrollado con TypeScript, Express y Prisma para proporcionar servicios de inteligencia artificial aplicada al ámbito médico.
+Backend desarrollado con TypeScript, Express y Prisma para proporcionar servicios de inteligencia artificial aplicada al
+ámbito médico.
 
 ## Tecnologías Utilizadas
 
@@ -28,9 +29,10 @@ Backend desarrollado con TypeScript, Express y Prisma para proporcionar servicio
 - **API REST Robusta** desarrollada con Express 5.
 - **Auditoría Clínica:** Registro inmutable de acciones en Base de Datos (Quién, Qué, A quién).
 - **Eliminación Lógica (Soft Delete):** Cumplimiento médico/legal para no borrar físicamente pacientes.
-- **Observabilidad Segura:** Logs centralizados con Pino, incluyendo redacción automática de contraseñas y datos sensibles.
+- **Observabilidad Segura:** Logs centralizados con Pino, incluyendo redacción automática de contraseñas y datos
+  sensibles.
 - **Defensa Anti-DDoS:** Rate Limiting implementado para inicios de sesión y consultas a la IA.
-- **Integración Segura con Gemini AI:** Validación estricta mediante *Zod Enums* para permitir solo modelos autorizados.
+- **Integración Segura con Gemini AI:** Validación estricta mediante _Zod Enums_ para permitir solo modelos autorizados.
 - **Autenticación JWT:** Cifrado de contraseñas con Bcrypt.
 - **Documentación Interactiva** mediante Swagger UI.
 - Pruebas de endpoints directamente desde Swagger UI.
@@ -41,43 +43,57 @@ Backend desarrollado con TypeScript, Express y Prisma para proporcionar servicio
 ## Guía Rápida de Instalación (6 Pasos)
 
 ### 1. Clonar e Instalar
+
 ```bash
 git clone <repository-url>
-cd medical-ai-backend
+cd MedicalWebApiv1
 npm install
 ```
 
 ### 2. Configurar el Entorno
+
 Crea un archivo `.env` en la raíz copiando el ejemplo:
+
 ```bash
 cp .env.example .env
 ```
+
 Asegúrate de configurar `DATABASE_URL`, `JWT_SECRET` y tu `GEMINI_API_KEY`.
 
 ### 3. Levantar la Infraestructura (PostgreSQL)
+
 Asegúrate de tener Docker instalado y enciende la base de datos:
+
 ```bash
 docker-compose up -d
 ```
 
 ### 4. Migrar la Base de Datos
+
 Construye las tablas (incluyendo el sistema de auditoría y soft delete):
+
 ```bash
 npm run db:migrate
 ```
 
 ### 5. Sembrar Datos Iniciales (Seeding)
+
 Puebla la base de datos con un administrador por defecto y configuraciones de IA:
+
 ```bash
 npm run db:seed
 ```
 
 ### 6. Arrancar el Servidor
+
 Para entorno de desarrollo (con recarga automática):
+
 ```bash
 npm run dev
 ```
+
 Para entorno de producción:
+
 ```bash
 npm run build && npm start
 ```

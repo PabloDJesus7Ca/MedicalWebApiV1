@@ -1,3 +1,4 @@
+import { logger } from "@modules/observability/logger";
 import { Response } from "express";
 import { AuthRequest } from "@shared/middleware/auth.middleware";
 import { IaConfigService } from "./ai-config.service";
@@ -8,7 +9,8 @@ export class IaConfigController {
       const models = await IaConfigService.listModels();
       return response.status(200).json({ models });
     } catch (error: unknown) {
-      if (error instanceof Error) return response.status(500).json({ message: error.message });
+      if (error instanceof Error) logger.error({ error: error.message, stack: error.stack }, "Error fatal capturado en controlador");
+        return response.status(500).json({ message: "Error interno del servidor. Por favor, contacta al administrador." });
       return response.status(500).json({ message: "Error interno al listar los modelos de IA." });
     }
   }
@@ -18,7 +20,8 @@ export class IaConfigController {
       const config = await IaConfigService.getConfig();
       return response.status(200).json({ config });
     } catch (error: unknown) {
-      if (error instanceof Error) return response.status(500).json({ message: error.message });
+      if (error instanceof Error) logger.error({ error: error.message, stack: error.stack }, "Error fatal capturado en controlador");
+        return response.status(500).json({ message: "Error interno del servidor. Por favor, contacta al administrador." });
       return response
         .status(500)
         .json({ message: "Error interno al obtener la configuración de IA." });
@@ -46,7 +49,8 @@ export class IaConfigController {
       const versions = await IaConfigService.listPromptVersions();
       return response.status(200).json({ versions });
     } catch (error: unknown) {
-      if (error instanceof Error) return response.status(500).json({ message: error.message });
+      if (error instanceof Error) logger.error({ error: error.message, stack: error.stack }, "Error fatal capturado en controlador");
+        return response.status(500).json({ message: "Error interno del servidor. Por favor, contacta al administrador." });
       return response
         .status(500)
         .json({ message: "Error interno al listar las versiones de prompts." });
@@ -60,7 +64,6 @@ export class IaConfigController {
         return response.status(401).json({ message: "Acceso denegado. Usuario no autenticado." });
 
       const { version, contenido } = request.body;
-
 
       const pv = await IaConfigService.createPromptVersion(adminUser, {
         version: version.trim(),

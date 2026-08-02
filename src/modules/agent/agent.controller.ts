@@ -30,16 +30,16 @@ export class UserControllerAi {
       return response.status(200).json(cleanedResponse);
     } catch (error: unknown) {
       if (error instanceof ZodError) {
-        return response.status(400).json({ ProcessError: error.issues[0]?.message || "Datos inválidos" });
+        return response
+          .status(400)
+          .json({ ProcessError: error.issues[0]?.message || "Datos inválidos" });
       }
       if (error instanceof Error) {
         return response.status(500).json({ ProcessError: error.message });
       }
-      return response
-        .status(500)
-        .json({
-          ProcessError: "Error interno al procesar la consulta con la inteligencia artificial.",
-        });
+      return response.status(500).json({
+        ProcessError: "Error interno al procesar la consulta con la inteligencia artificial.",
+      });
     }
   }
 }
