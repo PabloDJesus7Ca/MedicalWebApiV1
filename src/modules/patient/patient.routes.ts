@@ -86,6 +86,8 @@ router.post(
  * /pacientes:
  *   get:
  *     summary: Lista todos los pacientes (soporta búsqueda por nombre o documento). Retorna solo pacientes activos (excluye borrados lógicamente).
+ *     description: |
+ *       **Filtro por Roles:** Los médicos (`DOCTOR`) solo verán en la lista a los pacientes que ellos mismos registraron. Los administradores (`ADMIN`) obtienen la lista completa del hospital.
  *     tags:
  *       - Pacientes
  *     security:
@@ -112,6 +114,8 @@ router.get("/", middlewareAuth, checkRoleMiddleware(Rol.DOCTOR), PacientesContro
  * /pacientes/{id}:
  *   get:
  *     summary: Obtiene un paciente por su ID
+ *     description: |
+ *       **Filtro por Roles:** Si el usuario es `DOCTOR`, solo podrá obtener pacientes que él mismo haya registrado. Intentar obtener un paciente de otro médico retornará un error.
  *     tags:
  *       - Pacientes
  *     security:
@@ -140,6 +144,8 @@ router.get("/:id", middlewareAuth, checkRoleMiddleware(Rol.DOCTOR), PacientesCon
  * /pacientes/{id}:
  *   put:
  *     summary: Actualiza los datos de un paciente
+ *     description: |
+ *       **Filtro por Roles:** Si el usuario es `DOCTOR`, solo podrá editar pacientes que él mismo haya registrado.
  *     tags:
  *       - Pacientes
  *     security:
@@ -212,7 +218,9 @@ router.put(
  * /pacientes/{id}:
  *   delete:
  *     summary: Elimina un paciente por su ID (Soft-Delete)
- *     description: Realiza un borrado lógico (cambia el campo activo a false) en lugar de un borrado físico, para cumplir con las normativas de retención de datos médicos (HIPAA/GDPR). El paciente desaparecerá de las listas pero sus datos históricos se mantendrán protegidos en la base de datos.
+ *     description: |
+ *       Realiza un borrado lógico (cambia el campo activo a false) en lugar de un borrado físico, para cumplir con las normativas de retención de datos médicos (HIPAA/GDPR). El paciente desaparecerá de las listas pero sus datos históricos se mantendrán protegidos en la base de datos.
+ *       **Filtro por Roles:** Si el usuario es `DOCTOR`, solo podrá eliminar pacientes que él mismo haya registrado.
  *     tags:
  *       - Pacientes
  *     security:
@@ -240,6 +248,8 @@ router.delete("/:id", middlewareAuth, checkRoleMiddleware(Rol.DOCTOR), Pacientes
  * /pacientes/{id}/laboratorio:
  *   post:
  *     summary: Agrega un resultado de laboratorio a un paciente
+ *     description: |
+ *       **Filtro por Roles:** Si el usuario es `DOCTOR`, solo podrá agregar resultados a pacientes que él mismo haya registrado.
  *     tags:
  *       - Pacientes
  *     security:
@@ -309,6 +319,8 @@ router.post(
  * /pacientes/{id}/expediente:
  *   get:
  *     summary: Obtiene el expediente clínico completo de un paciente (datos, laboratorios y consultas IA)
+ *     description: |
+ *       **Filtro por Roles:** Si el usuario es `DOCTOR`, solo podrá ver expedientes de pacientes que él mismo haya registrado.
  *     tags:
  *       - Pacientes
  *     security:

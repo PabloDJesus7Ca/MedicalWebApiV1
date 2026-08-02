@@ -15,7 +15,10 @@ const parseConsultaOutput = (consulta: any) => {
 };
 
 export class ConsultaService {
-  static async crearConsulta(user: { id: number; rol: string; nombre?: string }, dto: CreateConsultaDto) {
+  static async crearConsulta(
+    user: { id: number; rol: string; nombre?: string },
+    dto: CreateConsultaDto
+  ) {
     const config = await prisma.config.findFirst();
     const modelName = config?.modelName ?? "gemini-3-flash-preview";
     const temperatura = config?.temperatura ?? 0.1;
@@ -25,7 +28,8 @@ export class ConsultaService {
     const promptVersion = await prisma.promptVersion.findFirst({ where: { activo: true } });
 
     // PASO 1: Buscar historial médico del paciente para incluirlo en el prompt (RF-18)
-    const wherePaciente = user.rol === "ADMIN" ? { id: dto.pacienteId } : { id: dto.pacienteId, creadoPorId: user.id };
+    const wherePaciente =
+      user.rol === "ADMIN" ? { id: dto.pacienteId } : { id: dto.pacienteId, creadoPorId: user.id };
     const pacienteHistorial = await prisma.paciente.findFirst({
       where: wherePaciente,
       include: {
@@ -143,12 +147,25 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
       `Dr(a). ${user.nombre || user.id} procesó una consulta médica con IA para el paciente #${dto.pacienteId}`
     );
 
-    logger.info({ doctor_id: user.id, doctor_nombre: user.nombre, accion: "CONSULTA_AI", paciente_id: dto.pacienteId, consulta_id: consulta.id }, `Dr(a). ${user.nombre || user.id} procesó una consulta de IA.`);
+    logger.info(
+      {
+        doctor_id: user.id,
+        doctor_nombre: user.nombre,
+        accion: "CONSULTA_AI",
+        paciente_id: dto.pacienteId,
+        consulta_id: consulta.id,
+      },
+      `Dr(a). ${user.nombre || user.id} procesó una consulta de IA.`
+    );
 
     return parseConsultaOutput(consulta);
   }
 
-  static async updateConsulta(consultaId: number, user: { id: number; rol: string; nombre?: string }, dto: UpdateConsultaDto) {
+  static async updateConsulta(
+    consultaId: number,
+    user: { id: number; rol: string; nombre?: string },
+    dto: UpdateConsultaDto
+  ) {
     const where = user.rol === "ADMIN" ? { id: consultaId } : { id: consultaId, doctorId: user.id };
     const consulta = await prisma.consulta.findFirst({ where });
     if (!consulta) {
@@ -180,12 +197,23 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
       `Dr(a). ${user.nombre || user.id} actualizó el diagnóstico de la consulta #${consultaId}`
     );
 
-    logger.info({ doctor_id: user.id, doctor_nombre: user.nombre, accion: "UPDATE_CONSULTA", consulta_id: consultaId }, `Dr(a). ${user.nombre || user.id} actualizó el diagnóstico de la consulta #${consultaId}.`);
+    logger.info(
+      {
+        doctor_id: user.id,
+        doctor_nombre: user.nombre,
+        accion: "UPDATE_CONSULTA",
+        consulta_id: consultaId,
+      },
+      `Dr(a). ${user.nombre || user.id} actualizó el diagnóstico de la consulta #${consultaId}.`
+    );
 
     return parseConsultaOutput(updated);
   }
 
-  static async getConsultaById(consultaId: number, user: { id: number; rol: string; nombre?: string }) {
+  static async getConsultaById(
+    consultaId: number,
+    user: { id: number; rol: string; nombre?: string }
+  ) {
     const where = user.rol === "ADMIN" ? { id: consultaId } : { id: consultaId, doctorId: user.id };
     const consulta = await prisma.consulta.findFirst({
       where,
@@ -216,13 +244,16 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
    * Solo se retornan consultas cuyo `doctorId` coincide con el médico autenticado:
    * un médico nunca puede ver el historial de consultas de otro médico.
    */
-  static async getHistorialPorDoctor(user: { id: number; rol: string; nombre?: string }, filtros: HistorialFiltersDto) {
+  static async getHistorialPorDoctor(
+    user: { id: number; rol: string; nombre?: string },
+    filtros: HistorialFiltersDto
+  ) {
     const page = filtros.page ?? 1;
     const pageSize = filtros.pageSize ?? 10;
     const skip = (page - 1) * pageSize;
 
     const where = {
-      ...((filtros.all && user.rol === "ADMIN") ? {} : { doctorId: user.id }),
+      ...(filtros.all && user.rol === "ADMIN" ? {} : { doctorId: user.id }),
       ...(filtros.pacienteId ? { pacienteId: filtros.pacienteId } : {}),
       ...(filtros.fechaInicio || filtros.fechaFin
         ? {
@@ -252,6 +283,12 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
       prisma.consulta.count({ where }),
     ]);
 
-    return { data: data.map(parseConsultaOutput), total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+    return {
+      data: data.map(parseConsultaOutput),
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 }

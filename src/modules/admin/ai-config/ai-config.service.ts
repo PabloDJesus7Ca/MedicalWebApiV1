@@ -43,7 +43,15 @@ export class IaConfigService {
       config.id,
       `Admin ${adminUser.nombre || adminUser.id} actualizó la configuración global de la IA: ${cambios}`
     );
-    logger.warn({ admin_id: adminUser.id, admin_nombre: adminUser.nombre, accion: "UPDATE_GLOBAL_CONFIG", cambios }, `El Administrador ${adminUser.nombre || adminUser.id} cambió la configuración global de la IA.`);
+    logger.warn(
+      {
+        admin_id: adminUser.id,
+        admin_nombre: adminUser.nombre,
+        accion: "UPDATE_GLOBAL_CONFIG",
+        cambios,
+      },
+      `El Administrador ${adminUser.nombre || adminUser.id} cambió la configuración global de la IA.`
+    );
     return updated;
   }
 
@@ -51,14 +59,35 @@ export class IaConfigService {
     return await prisma.promptVersion.findMany({ orderBy: { creadoEn: "desc" } });
   }
 
-  static async createPromptVersion(adminUser: { id: number; nombre?: string }, dto: CreatePromptVersionDto) {
+  static async createPromptVersion(
+    adminUser: { id: number; nombre?: string },
+    dto: CreatePromptVersionDto
+  ) {
     const pv = await prisma.promptVersion.create({ data: dto as any });
-    await logAudit(adminUser.id, "CREATE", "PromptVersion", pv.id, `Admin ${adminUser.nombre || adminUser.id} creó la versión de prompt: ${dto.version}`);
-    logger.info({ admin_id: adminUser.id, admin_nombre: adminUser.nombre, accion: "CREATE_PROMPT_VERSION", prompt_id: pv.id }, `El Administrador ${adminUser.nombre || adminUser.id} creó una nueva versión de Prompt.`);
+    await logAudit(
+      adminUser.id,
+      "CREATE",
+      "PromptVersion",
+      pv.id,
+      `Admin ${adminUser.nombre || adminUser.id} creó la versión de prompt: ${dto.version}`
+    );
+    logger.info(
+      {
+        admin_id: adminUser.id,
+        admin_nombre: adminUser.nombre,
+        accion: "CREATE_PROMPT_VERSION",
+        prompt_id: pv.id,
+      },
+      `El Administrador ${adminUser.nombre || adminUser.id} creó una nueva versión de Prompt.`
+    );
     return pv;
   }
 
-  static async updatePromptVersion(id: number, adminUser: { id: number; nombre?: string }, dto: UpdatePromptVersionDto) {
+  static async updatePromptVersion(
+    id: number,
+    adminUser: { id: number; nombre?: string },
+    dto: UpdatePromptVersionDto
+  ) {
     const existing = await prisma.promptVersion.findUnique({ where: { id } });
     if (!existing) throw new Error("La versión de prompt especificada no fue encontrada.");
 
@@ -73,7 +102,15 @@ export class IaConfigService {
       id,
       `Admin ${adminUser.nombre || adminUser.id} actualizó la PromptVersion #${id}: ${cambios}`
     );
-    logger.warn({ admin_id: adminUser.id, admin_nombre: adminUser.nombre, accion: "UPDATE_PROMPT_VERSION", prompt_id: id }, `El Administrador ${adminUser.nombre || adminUser.id} actualizó una versión de Prompt.`);
+    logger.warn(
+      {
+        admin_id: adminUser.id,
+        admin_nombre: adminUser.nombre,
+        accion: "UPDATE_PROMPT_VERSION",
+        prompt_id: id,
+      },
+      `El Administrador ${adminUser.nombre || adminUser.id} actualizó una versión de Prompt.`
+    );
     return updated;
   }
 
@@ -89,8 +126,22 @@ export class IaConfigService {
       where: { id },
       data: { activo: true },
     });
-    await logAudit(adminUser.id, "UPDATE", "PromptVersion", id, `Admin ${adminUser.nombre || adminUser.id} activó la PromptVersion #${id}`);
-    logger.warn({ admin_id: adminUser.id, admin_nombre: adminUser.nombre, accion: "ACTIVATE_PROMPT_VERSION", prompt_id: id }, `El Administrador ${adminUser.nombre || adminUser.id} ACTIVÓ una nueva versión de Prompt en producción.`);
+    await logAudit(
+      adminUser.id,
+      "UPDATE",
+      "PromptVersion",
+      id,
+      `Admin ${adminUser.nombre || adminUser.id} activó la PromptVersion #${id}`
+    );
+    logger.warn(
+      {
+        admin_id: adminUser.id,
+        admin_nombre: adminUser.nombre,
+        accion: "ACTIVATE_PROMPT_VERSION",
+        prompt_id: id,
+      },
+      `El Administrador ${adminUser.nombre || adminUser.id} ACTIVÓ una nueva versión de Prompt en producción.`
+    );
     return activated;
   }
 }

@@ -21,14 +21,25 @@ export const logger = pino({
     remove: true,
   },
   transport: {
-    target: "pino-loki",
-    options: {
-      batching: true,
-      interval: 5,
-      host: "http://localhost:3100",
-      labels: { app: PackageJson.name },
-      tenantId: "tenant1",
-    },
+    targets: [
+      {
+        target: "pino-pretty", // Imprime en la consola (terminal)
+        options: {
+          colorize: true,
+          translateTime: "SYS:standard",
+        },
+      },
+      {
+        target: "pino-loki", // Envía a Grafana
+        options: {
+          batching: true,
+          interval: 5,
+          host: "http://localhost:3100",
+          labels: { app: PackageJson.name },
+          tenantId: "tenant1",
+        },
+      },
+    ],
   },
   formatters: {
     bindings: ({ pid, hostname }) => {
@@ -39,9 +50,6 @@ export const logger = pino({
         version: PackageJson.version,
         enviroment: process.env.NODE_ENV ?? "development",
       };
-    },
-    level(label: string) {
-      return { level: label };
     },
   },
 });

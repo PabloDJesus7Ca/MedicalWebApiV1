@@ -45,4 +45,3 @@ Thumbs.db
 
 # Directorios de datos (MinIO, bases de datos locales)
 .data/
-.data/

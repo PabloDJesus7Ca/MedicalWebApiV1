@@ -83,13 +83,7 @@ const router: Router = Router();
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Error al iniciar sesion
- *                 class:
- *                   type: string
- *                   example: Error details
- *                 code:
- *                   type: string
- *                   example: ERR_500
+ *                   example: Error interno del servidor. Por favor, contacta al administrador.
  *       429:
  *         description: Demasiadas solicitudes (límite de 10 intentos por 15 minutos superado)
  *         content:

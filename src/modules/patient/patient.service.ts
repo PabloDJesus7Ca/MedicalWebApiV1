@@ -59,7 +59,8 @@ export class PacientesService {
   }
 
   static async listPacientes(user: { id: number; rol: string; nombre?: string }, search?: string) {
-    const baseWhere = user.rol === "ADMIN" ? { activo: true } : { creadoPorId: user.id, activo: true };
+    const baseWhere =
+      user.rol === "ADMIN" ? { activo: true } : { creadoPorId: user.id, activo: true };
     return await prisma.paciente.findMany({
       where: search
         ? {
@@ -76,7 +77,8 @@ export class PacientesService {
   }
 
   static async getPacienteById(id: number, user: { id: number; rol: string; nombre?: string }) {
-    const where = user.rol === "ADMIN" ? { id, activo: true } : { id, creadoPorId: user.id, activo: true };
+    const where =
+      user.rol === "ADMIN" ? { id, activo: true } : { id, creadoPorId: user.id, activo: true };
     const paciente = await prisma.paciente.findFirst({
       where,
       include: doctorInclude,
@@ -94,7 +96,8 @@ export class PacientesService {
     data: UpdatePacienteDto,
     user: { id: number; rol: string; nombre?: string }
   ) {
-    const where = user.rol === "ADMIN" ? { id, activo: true } : { id, creadoPorId: user.id, activo: true };
+    const where =
+      user.rol === "ADMIN" ? { id, activo: true } : { id, creadoPorId: user.id, activo: true };
     const paciente = await prisma.paciente.findFirst({ where });
 
     if (!paciente) {
@@ -129,7 +132,8 @@ export class PacientesService {
   }
 
   static async deletePaciente(id: number, user: { id: number; rol: string; nombre?: string }) {
-    const where = user.rol === "ADMIN" ? { id, activo: true } : { id, creadoPorId: user.id, activo: true };
+    const where =
+      user.rol === "ADMIN" ? { id, activo: true } : { id, creadoPorId: user.id, activo: true };
     const paciente = await prisma.paciente.findFirst({ where });
 
     if (!paciente) {
@@ -165,7 +169,9 @@ export class PacientesService {
     user: { id: number; rol: string; nombre?: string }
   ) {
     const where =
-      user.rol === "ADMIN" ? { id: pacienteId, activo: true } : { id: pacienteId, creadoPorId: user.id, activo: true };
+      user.rol === "ADMIN"
+        ? { id: pacienteId, activo: true }
+        : { id: pacienteId, creadoPorId: user.id, activo: true };
     const paciente = await prisma.paciente.findFirst({ where });
 
     if (!paciente) {
@@ -206,7 +212,9 @@ export class PacientesService {
     user: { id: number; rol: string; nombre?: string }
   ) {
     const where =
-      user.rol === "ADMIN" ? { id: pacienteId, activo: true } : { id: pacienteId, creadoPorId: user.id, activo: true };
+      user.rol === "ADMIN"
+        ? { id: pacienteId, activo: true }
+        : { id: pacienteId, creadoPorId: user.id, activo: true };
     const paciente = await prisma.paciente.findFirst({
       where,
       include: {
