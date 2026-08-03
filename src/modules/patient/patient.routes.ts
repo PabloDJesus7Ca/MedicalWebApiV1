@@ -62,12 +62,7 @@ const router: Router = Router();
  *                 errors:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                       message:
- *                         type: string
+ *                     type: string
  *       401:
  *         description: No autenticado
  *       403:
@@ -192,12 +187,7 @@ router.get("/:id", middlewareAuth, checkRoleMiddleware(Rol.DOCTOR), PacientesCon
  *                 errors:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                       message:
- *                         type: string
+ *                     type: string
  *       401:
  *         description: No autenticado
  *       403:
@@ -293,12 +283,7 @@ router.delete("/:id", middlewareAuth, checkRoleMiddleware(Rol.DOCTOR), Pacientes
  *                 errors:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                       message:
- *                         type: string
+ *                     type: string
  *       401:
  *         description: No autenticado
  *       403:

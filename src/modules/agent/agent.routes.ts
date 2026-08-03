@@ -40,12 +40,7 @@ const routes: Router = Router();
  *                 errors:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                       message:
- *                         type: string
+ *                     type: string
  *       401:
  *         description: No autenticado
  *       403:
