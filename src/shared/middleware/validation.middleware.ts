@@ -10,9 +10,9 @@ export const validationRequest =
       if (error instanceof ZodError) {
         return response.status(400).json({
           message: "Error de validación en los datos enviados.",
-          errors: error.issues.map((issue: any) => ({
-            field: issue.path.join("."),
-            message: issue.message,
+          errors: error.issues.map((issue) => ({
+            field: issue.path.join('.'),
+            message: issue.message
           })),
         });
       }
