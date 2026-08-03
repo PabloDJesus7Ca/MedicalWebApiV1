@@ -67,7 +67,7 @@ const router: Router = Router();
  *                   type: array
  *                   items:
  *                     type: string
- *                   example: ["gemini-3-flash-preview", "gemini-2.5-pro", "gemini-2.5-flash"]
+ *                   example: ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest"]
  *       401:
  *         description: No autenticado, falta token JWT o expiró
  *       403:
@@ -101,7 +101,7 @@ router.get("/", middlewareAuth, checkRoleMiddleware(Rol.ADMIN), IaConfigControll
  *             properties:
  *               modelName:
  *                 type: string
- *                 example: "gemini-2.5-flash"
+ *                 example: "gemini-3.6-flash"
  *               maxTokens:
  *                 type: integer
  *                 maximum: 8192
@@ -129,12 +129,7 @@ router.get("/", middlewareAuth, checkRoleMiddleware(Rol.ADMIN), IaConfigControll
  *                 errors:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                       message:
- *                         type: string
+ *                     type: string
  *       401:
  *         description: No autenticado
  *       403:
@@ -226,12 +221,7 @@ router.put(
  *                 errors:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                       message:
- *                         type: string
+ *                     type: string
  *       401:
  *         description: No autenticado
  *       403:

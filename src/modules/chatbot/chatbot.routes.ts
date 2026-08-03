@@ -59,12 +59,7 @@ const router: Router = Router();
  *                 errors:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                       message:
- *                         type: string
+ *                     type: string
  *       401:
  *         description: Token no proporcionado o inválido
  *       403:

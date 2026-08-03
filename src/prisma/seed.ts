@@ -88,7 +88,7 @@ Responde estrictamente en formato JSON sin Markdown adicional.`;
     await prisma.config.create({
       data: {
         id: 1,
-        modelName: "gemini-2.5-flash",
+        modelName: "gemini-3.6-flash",
         maxTokens: 4000,
         temperatura: 0.1,
         systemPrompt: systemPromptContent,

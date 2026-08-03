@@ -68,12 +68,7 @@ const router: Router = Router();
  *                 errors:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                       message:
- *                         type: string
+ *                     type: string
  *       500:
  *         description: Error desconocido del servidor
  *         content:

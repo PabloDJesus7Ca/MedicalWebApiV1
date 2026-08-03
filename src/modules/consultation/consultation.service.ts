@@ -20,7 +20,7 @@ export class ConsultaService {
     dto: CreateConsultaDto
   ) {
     const config = await prisma.config.findFirst();
-    const modelName = config?.modelName ?? "gemini-3-flash-preview";
+    const modelName = config?.modelName ?? "gemini-3.5-flash";
     const temperatura = config?.temperatura ?? 0.1;
     const maxTokens = config?.maxTokens ?? 4000;
     const systemPrompt = config?.systemPrompt ?? System;
@@ -85,7 +85,7 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
     const configPayload: Record<string, unknown> = {
       temperature: temperatura,
       maxOutputTokens: maxTokens,
-      responseMimeType: "application/json",
+      responseMimeType: "application/json"
     };
     if (systemPrompt) {
       configPayload.systemInstruction = systemPrompt;

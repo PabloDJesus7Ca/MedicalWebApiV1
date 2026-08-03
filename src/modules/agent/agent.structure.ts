@@ -6,7 +6,7 @@ dotenv.config();
 
 export default async function main(asking: string) {
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-3.6-flash",
     contents: `${asking}`,
     config: {
       systemInstruction: `${System}`,
