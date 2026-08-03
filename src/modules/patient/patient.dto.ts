@@ -10,7 +10,7 @@ export const CreatePacienteSchema = z.object({
     .number({ message: "La edad es requerida" })
     .int("Debe ser entero")
     .positive("Debe ser positiva")
-    .max(100),
+    .max(100, "La edad máxima es 100 años"),
   sexo: z
     .string({ message: "El sexo es requerido" })
     .trim()
@@ -18,8 +18,8 @@ export const CreatePacienteSchema = z.object({
     .regex(/^(M|F)$/, "Debe ser 'M' o 'F'"),
   documento: z
     .string({ message: "El documento es requerido" })
-    .trim()
-    .max(11, "El numero de cedula permitido oficialmente son 11 caracteres"),
+    .length(11, "La cédula debe tener exactamente 11 caracteres")
+    .regex(/^[0-9]+$/, "La cédula solo debe contener números"),
 });
 
 export const CreateLaboratorioSchema = z.object({
@@ -28,7 +28,7 @@ export const CreateLaboratorioSchema = z.object({
     .trim()
     .min(3, "Minimo 3 caracteres")
     .max(300, "Maximo 300 caracteres soportados"),
-  resultado: z.string({ message: "El resultado es requerido" }).min(1),
+  resultado: z.string({ message: "El resultado es requerido" }).min(1, "El resultado no puede estar vacío"),
 });
 
 export type CreateLaboratorioDto = z.infer<typeof CreateLaboratorioSchema>;

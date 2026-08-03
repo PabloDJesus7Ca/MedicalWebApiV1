@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const AskQuestionSchema = z.object({
-  consultaId: z.number({ message: "El ID de la consulta es requerido" }).int().positive(),
+  consultaId: z.number({ error: "El ID de la consulta es requerido y debe ser un número" }).int("Debe ser entero").positive("Debe ser mayor a 0"),
   question: z
-    .string({ message: "La pregunta es requerida" })
+    .string({ error: "La pregunta es requerida y debe ser texto" })
     .trim()
     .min(5, "La pregunta debe tener al menos 5 caracteres"),
 });
