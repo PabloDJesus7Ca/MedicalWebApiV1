@@ -1,7 +1,9 @@
 import { z } from "zod";
 
+export const modelNames = ["gemini-3-flash-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const;
+
 export const UpdateConfigSchema = z.object({
-  modelName: z.enum(["gemini-3-flash-preview", "gemini-2.5-pro", "gemini-2.5-flash"], {
+  modelName: z.enum(modelNames, {
     message: "Modelo no válido. Opciones permitidas: gemini-3-flash-preview, gemini-2.5-pro, gemini-2.5-flash"
   }).optional(),
   maxTokens: z.number().int().positive().max(8192, { message: "El máximo de tokens para Gemini es 8192" }).optional(),
