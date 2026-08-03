@@ -21,11 +21,11 @@ export class ChatbotService {
     }
 
     const config = await prisma.config.findFirst();
-    const modelName = config?.modelName ?? "gemini-3-flash-preview";
+    const modelName = config?.modelName ?? "gemini-3.5-flash";
     const temperatura = config?.temperatura ?? 0.1;
     const maxTokens = config?.maxTokens ?? 4000;
 
-    const context = `Paciente: ${consulta.paciente.nombre} (Doc: ${consulta.paciente.documento})\n\nSíntomas registrados:\n${consulta.input}\n\nDiagnóstico emitido:\n${consulta.output}\n\n---\n\nResponde la siguiente pregunta del médico basándote exclusivamente en el contexto clínico de esta consulta:\n\n${dto.question}`;
+    const context = `Paciente: ${consulta.paciente.nombre} (Doc: ${consulta.paciente.documento})\n\nSíntomas registrados:\n${consulta.input}\n\nDiagnóstico emitido:\n${consulta.output}\n\n---\n\nResponde la siguiente pregunta del médico basándote en el contexto clínico de esta consulta:\n\n${dto.question}`;
 
     const configPayload: Record<string, unknown> = {
       temperature: temperatura,

@@ -127,7 +127,7 @@ export class ConsultaController {
       return response.status(200).json(result);
     } catch (error: unknown) {
       if (error instanceof ZodError) {
-        return response.status(400).json({ message: "Filtros inválidos", errors: error.issues });
+        return response.status(400).json({ message: "Filtros inválidos", errors: error.issues.map(issue => issue.message) });
       }
       if (error instanceof Error) {
         return response.status(400).json({ message: error.message });
