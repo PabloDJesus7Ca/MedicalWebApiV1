@@ -1,3 +1,4 @@
+import { logger } from "@modules/observability/logger";
 import { Response } from "express";
 import { AuthRequest } from "@shared/middleware/auth.middleware";
 import { LogFilters, LogsService } from "./audit.service";
@@ -18,7 +19,7 @@ export class LogsController {
       const result = await LogsService.getLogsPaged(page, pageSize, filters);
       return res.json(result);
     } catch (error) {
-      console.error("Error fetching logs:", error);
+      logger.error({ error }, "Error fetching logs:");
       return res
         .status(500)
         .json({ message: "Error interno al obtener el registro de auditoría." });
@@ -30,7 +31,7 @@ export class LogsController {
       const metricas = await LogsService.getMetricas();
       return res.json(metricas);
     } catch (error) {
-      console.error("Error fetching metrics:", error);
+      logger.error({ error }, "Error fetching metrics:");
       return res
         .status(500)
         .json({ message: "Error interno al obtener las métricas de auditoría." });

@@ -51,5 +51,5 @@ export const dbConfig = {
 app.use(errorHandler);
 
 app.listen(configSystem.PORT, () => {
-  logger.info(`Medical Api Corriendo V-01 ${configSystem.PORT}`);
+  logger.info(`MedicalWebApiV1 running at:${configSystem.PORT}`);
 });

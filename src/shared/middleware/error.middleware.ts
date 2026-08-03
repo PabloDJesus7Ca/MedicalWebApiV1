@@ -18,13 +18,20 @@ export const errorHandler: ErrorRequestHandler = (
   response: Response,
   _next: NextFunction
 ) => {
-  logger.error({ accion: "SERVER_ERROR", error: error.message, stack: error.stack }, `Error fatal capturado (Status: ${error.status ?? 500})`);
+  logger.error(
+    { accion: "SERVER_ERROR", error: error.message, stack: error.stack },
+    `Error fatal capturado (Status: ${error.status ?? 500})`
+  );
 
   const userId = request.user?.id ?? 0;
   logAudit(userId, "ERROR", "System", undefined, `Error ${error.status ?? 500}: ${error.message}`);
 
-  response.status(error.status ?? 500).json({
-    message: error.message ?? "Error interno del servidor. Por favor, contacta al administrador.",
-    details: isProduction ? null : error.status,
+  const status = error.status ?? 500;
+  const safeMessage = status === 500 
+    ? "Error interno del servidor. Por favor, contacta al administrador." 
+    : error.message;
+
+  response.status(status).json({
+    message: safeMessage
   });
 };

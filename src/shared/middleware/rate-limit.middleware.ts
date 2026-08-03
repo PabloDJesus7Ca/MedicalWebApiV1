@@ -10,9 +10,12 @@ export const LoginLimiter = rateLimit({
     "Se ha excedido el límite de intentos de inicio de sesión desde esta dirección IP. Por favor, inténtalo de nuevo más tarde.",
   statusCode: 429,
   handler: (req, res, _next, options) => {
-    logger.warn({ ip: req.ip, endpoint: req.originalUrl, accion: "RATE_LIMIT_LOGIN" }, "Alerta: Posible ataque de fuerza bruta detectado en el login.");
+    logger.warn(
+      { ip: req.ip, endpoint: req.originalUrl, accion: "RATE_LIMIT_LOGIN" },
+      "Alerta: Posible ataque de fuerza bruta detectado en el login."
+    );
     res.status(options.statusCode).send({ message: options.message });
-  }
+  },
 });
 
 export const ConsultaLimiter = rateLimit({
@@ -27,7 +30,15 @@ export const ConsultaLimiter = rateLimit({
     "Has alcanzado el límite de consultas permitidas por hora. Por favor, inténtalo de nuevo más tarde.",
   statusCode: 429,
   handler: (req, res, _next, options) => {
-    logger.warn({ ip: req.ip, endpoint: req.originalUrl, usuario_id: (req as any).user?.id, accion: "RATE_LIMIT_CONSULTA" }, "Alerta: Límite de consultas a la IA excedido.");
+    logger.warn(
+      {
+        ip: req.ip,
+        endpoint: req.originalUrl,
+        usuario_id: (req as any).user?.id,
+        accion: "RATE_LIMIT_CONSULTA",
+      },
+      "Alerta: Límite de consultas a la IA excedido."
+    );
     res.status(options.statusCode).send({ message: options.message });
-  }
+  },
 });

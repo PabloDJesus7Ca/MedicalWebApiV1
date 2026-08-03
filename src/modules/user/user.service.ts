@@ -17,7 +17,10 @@ export class AdminUsuariosService {
   // TODO: Lógica para leer logs de auditoría inmutables y actualizar configuración de IA (RF-24 a RF-28).
 
   /** Crea un nuevo usuario (médico o administrador). Solo accesible por un ADMIN. */
-  static async crearUsuario(data: CreateUserAllowedForAdmin, adminUser: { id: number; nombre?: string }) {
+  static async crearUsuario(
+    data: CreateUserAllowedForAdmin,
+    adminUser: { id: number; nombre?: string }
+  ) {
     const existente = await prisma.user.findUnique({ where: { email: data.email } });
     if (existente) {
       throw new Error("Ya existe un usuario registrado con este correo electrónico.");
@@ -41,7 +44,16 @@ export class AdminUsuariosService {
       `Admin ${adminUser.nombre || adminUser.id} registró al nuevo ${data.rol}: ${data.email}`
     );
 
-    logger.info({ admin_id: adminUser.id, admin_nombre: adminUser.nombre, accion: "CREATE_USER", nuevo_usuario: data.email, nuevo_rol: data.rol }, `Admin ${adminUser.nombre || adminUser.id} registró a un nuevo usuario (${data.rol}).`);
+    logger.info(
+      {
+        admin_id: adminUser.id,
+        admin_nombre: adminUser.nombre,
+        accion: "CREATE_USER",
+        nuevo_usuario: data.email,
+        nuevo_rol: data.rol,
+      },
+      `Admin ${adminUser.nombre || adminUser.id} registró a un nuevo usuario (${data.rol}).`
+    );
 
     return usuario;
   }
@@ -67,7 +79,11 @@ export class AdminUsuariosService {
    * Edita los datos de un usuario. También se usa para desactivarlo:
    * basta con enviar `{ activo: false }` en el body.
    */
-  static async actualizarUsuario(id: number, data: UpdateUsuarioAdminDto, adminUser: { id: number; nombre?: string }) {
+  static async actualizarUsuario(
+    id: number,
+    data: UpdateUsuarioAdminDto,
+    adminUser: { id: number; nombre?: string }
+  ) {
     const usuario = await prisma.user.findUnique({ where: { id } });
     if (!usuario) {
       throw new Error("Usuario no encontrado.");
@@ -89,8 +105,22 @@ export class AdminUsuariosService {
     const cambios = Object.entries(data)
       .map(([k, v]) => `${k}:${v}`)
       .join(", ");
-    await logAudit(adminUser.id, "UPDATE", "User", id, `Admin ${adminUser.nombre || adminUser.id} actualizó/suspendió al usuario #${id}: ${cambios}`);
-    logger.warn({ admin_id: adminUser.id, admin_nombre: adminUser.nombre, accion: "UPDATE_USER_OR_SUSPEND", usuario_id: id }, `Admin ${adminUser.nombre || adminUser.id} modificó credenciales o estado del usuario #${id}.`);
+    await logAudit(
+      adminUser.id,
+      "UPDATE",
+      "User",
+      id,
+      `Admin ${adminUser.nombre || adminUser.id} actualizó/suspendió al usuario #${id}: ${cambios}`
+    );
+    logger.warn(
+      {
+        admin_id: adminUser.id,
+        admin_nombre: adminUser.nombre,
+        accion: "UPDATE_USER_OR_SUSPEND",
+        usuario_id: id,
+      },
+      `Admin ${adminUser.nombre || adminUser.id} modificó credenciales o estado del usuario #${id}.`
+    );
 
     return updated;
   }

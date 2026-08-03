@@ -28,24 +28,24 @@ Como parte de la transición hacia el diseño de la base de datos definitiva de 
 la estructura de base de datos previa (plantilla) aplicando los siguientes cambios lógicos de persistencia:
 
 - **Tablas Eliminadas/Reestructuradas:**
-    - `Doctor`: Se eliminó para unificar a todo el personal en la entidad `User` usando la asignación del rol `DOCTOR`,
-      evitando la duplicidad de datos en tablas paralelas.
-    - `Agenda`: Se eliminó por estar fuera del alcance exclusivo de apoyo diagnóstico web del sistema.
-    - `HistorialPaciente`: Se fragmentó y reestructuró en las tablas `Consulta` y `Laboratorio` para separar
-      ordenadamente las sugerencias diagnósticas y las pruebas clínicas.
+  - `Doctor`: Se eliminó para unificar a todo el personal en la entidad `User` usando la asignación del rol `DOCTOR`,
+    evitando la duplicidad de datos en tablas paralelas.
+  - `Agenda`: Se eliminó por estar fuera del alcance exclusivo de apoyo diagnóstico web del sistema.
+  - `HistorialPaciente`: Se fragmentó y reestructuró en las tablas `Consulta` y `Laboratorio` para separar
+    ordenadamente las sugerencias diagnósticas y las pruebas clínicas.
 - **Tablas Nuevas Creadas:**
-    - `Consulta`: Para registrar la trazabilidad completa e inmutable de la IA (síntomas, nivel de riesgo, tokens
-      consumidos, versión de prompt y modelo).
-    - `Laboratorio`: Para registrar los resultados de análisis y exámenes complementarios del expediente de cada
-      paciente.
-    - `Config`: Modelo tipo Singleton para editar en tiempo real los parámetros del modelo de Gemini AI (temperatura,
-      prompt, tokens).
-    - `PromptVersion`: Para registrar las modificaciones al prompt del sistema y asegurar reproducibilidad clínica.
-    - `AuditLog`: Bitácora inmutable de eventos de seguridad (inicios de sesión, modificaciones, etc.).
+  - `Consulta`: Para registrar la trazabilidad completa e inmutable de la IA (síntomas, nivel de riesgo, tokens
+    consumidos, versión de prompt y modelo).
+  - `Laboratorio`: Para registrar los resultados de análisis y exámenes complementarios del expediente de cada
+    paciente.
+  - `Config`: Modelo tipo Singleton para editar en tiempo real los parámetros del modelo de Gemini AI (temperatura,
+    prompt, tokens).
+  - `PromptVersion`: Para registrar las modificaciones al prompt del sistema y asegurar reproducibilidad clínica.
+  - `AuditLog`: Bitácora inmutable de eventos de seguridad (inicios de sesión, modificaciones, etc.).
 - **Correcciones del Motor de Base de Datos:**
-    - Se actualizó el provider del generador a `"prisma-client-js"`.
-    - Se eliminó la propiedad estática `url` en la directiva `datasource db` para delegar la conexión al cargador
-      dinámico de `prisma.config.ts` de Prisma v7.
+  - Se actualizó el provider del generador a `"prisma-client-js"`.
+  - Se eliminó la propiedad estática `url` en la directiva `datasource db` para delegar la conexión al cargador
+    dinámico de `prisma.config.ts` de Prisma v7.
 
 ---
 
@@ -233,7 +233,7 @@ archivo local de credenciales `.env`:
    ```bash
    npx prisma db seed
    ```
-    - _Credenciales de Admin por defecto:_ `admin@medreason.ai` / `AdminPassword123!`
+   - _Credenciales de Admin por defecto:_ `admin@medreason.ai` / `AdminPassword123!`
 5. **Iniciar Servidor de Desarrollo:**
    ```bash
    npm run dev

@@ -59,17 +59,18 @@ const router: Router = Router();
  *                 errors:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                       message:
- *                         type: string
+ *                     type: string
  *       401:
  *         description: Token no proporcionado o inválido
  *       403:
  *         description: El usuario autenticado no tiene rol DOCTOR
  */
-router.post("/ask", middlewareAuth, checkRoleMiddleware(Rol.DOCTOR), validationRequest(AskQuestionSchema), ChatbotController.ask);
+router.post(
+  "/ask",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.DOCTOR),
+  validationRequest(AskQuestionSchema),
+  ChatbotController.ask
+);
 
 export default router;

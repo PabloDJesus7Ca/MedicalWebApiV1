@@ -38,6 +38,7 @@ model Paciente {
   sexo        String
   documento   String        @unique
   creadoPorId Int
+  activo      Boolean       @default(true)
   createdAt   DateTime      @default(now())
 
   // Relaciones

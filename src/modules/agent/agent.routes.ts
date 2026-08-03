@@ -40,17 +40,18 @@ const routes: Router = Router();
  *                 errors:
  *                   type: array
  *                   items:
- *                     type: object
- *                     properties:
- *                       field:
- *                         type: string
- *                       message:
- *                         type: string
+ *                     type: string
  *       401:
  *         description: No autenticado
  *       403:
  *         description: El usuario autenticado no tiene rol DOCTOR
  */
-routes.post("/chat", middlewareAuth, checkRoleMiddleware(Rol.DOCTOR), validationRequest(ChatAgentSchema), UserControllerAi.Chat);
+routes.post(
+  "/chat",
+  middlewareAuth,
+  checkRoleMiddleware(Rol.DOCTOR),
+  validationRequest(ChatAgentSchema),
+  UserControllerAi.Chat
+);
 
 export default routes;

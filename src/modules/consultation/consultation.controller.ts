@@ -1,3 +1,4 @@
+import { logger } from "@modules/observability/logger";
 import { Response } from "express";
 import { AuthRequest } from "@shared/middleware/auth.middleware";
 import { ConsultaService } from "./consultation.service";
@@ -15,8 +16,6 @@ export class ConsultaController {
 
       const { pacienteId, input } = request.body;
 
-
-
       const paciente = await prisma.paciente.findUnique({ where: { id: pacienteId } });
       if (!paciente) {
         return response.status(404).json({ message: "Paciente no encontrado." });
@@ -31,7 +30,7 @@ export class ConsultaController {
       try {
         outputLimpio = JSON.parse(consulta.output);
       } catch (e) {
-        console.log("Error al Parsear Datos En La Consulta", e);
+        logger.info({ e }, "Error al Parsear Datos En La Consulta");
       }
 
       return response.status(201).json({
@@ -40,7 +39,8 @@ export class ConsultaController {
       });
     } catch (error: unknown) {
       if (error instanceof Error) {
-        return response.status(500).json({ message: error.message });
+        logger.error({ error: error.message, stack: error.stack }, "Error fatal capturado en controlador");
+        return response.status(500).json({ message: "Error interno del servidor. Por favor, contacta al administrador." });
       }
       return response.status(500).json({ message: "Error interno al crear la consulta médica." });
     }
@@ -59,7 +59,6 @@ export class ConsultaController {
       }
 
       const { input, output, completed } = request.body;
-
 
       const consulta = await ConsultaService.updateConsulta(id, user, {
         input,
@@ -128,7 +127,7 @@ export class ConsultaController {
       return response.status(200).json(result);
     } catch (error: unknown) {
       if (error instanceof ZodError) {
-        return response.status(400).json({ message: "Filtros inválidos", errors: error.issues });
+        return response.status(400).json({ message: "Filtros inválidos", errors: error.issues.map(issue => issue.message) });
       }
       if (error instanceof Error) {
         return response.status(400).json({ message: error.message });
