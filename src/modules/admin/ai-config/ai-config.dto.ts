@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const modelNames = ["gemini-3-flash-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const;
+export const modelNames = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest"] as const;
 
 export const UpdateConfigSchema = z.object({
   modelName: z.enum(modelNames, {
