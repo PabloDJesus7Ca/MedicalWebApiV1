@@ -19,7 +19,6 @@ app.use(
         "http://localhost:3006",
         "http://localhost:3012",
         "http://localhost:3003",
-        "http://localhost:3007",
         "http://localhost:5675",
         "http://localhost:3000",
       ],
