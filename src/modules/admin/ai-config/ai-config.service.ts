@@ -1,4 +1,3 @@
-import { ai } from "@shared/utils/ai.helper";
 import { prisma } from "@/config/lib/prisma";
 import { CreatePromptVersionDto, UpdateConfigDto, UpdatePromptVersionDto } from "./ai-config.dto";
 import { logAudit } from "@shared/utils/audit.helper";
@@ -6,12 +5,12 @@ import { logger } from "@modules/observability/logger";
 
 export class IaConfigService {
   static async listModels(): Promise<string[]> {
-    const pager = await ai.models.list();
-    const models: string[] = [];
-    for await (const model of pager) {
-      if (model.name) models.push(model.name.replace(/^models\//, ""));
-    }
-    return models;
+    // Retornamos únicamente los modelos comprobados que no fallan con la cuota actual.
+    return [
+      "gemini-3.5-flash",
+      "gemini-3.6-flash",
+      "gemini-flash-latest"
+    ];
   }
 
   static async getConfig() {
