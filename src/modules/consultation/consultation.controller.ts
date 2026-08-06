@@ -39,8 +39,13 @@ export class ConsultaController {
       });
     } catch (error: unknown) {
       if (error instanceof Error) {
-        logger.error({ error: error.message, stack: error.stack }, "Error fatal capturado en controlador");
-        return response.status(500).json({ message: "Error interno del servidor. Por favor, contacta al administrador." });
+        logger.error(
+          { error: error.message, stack: error.stack },
+          "Error fatal capturado en controlador"
+        );
+        return response
+          .status(500)
+          .json({ message: "Error interno del servidor. Por favor, contacta al administrador." });
       }
       return response.status(500).json({ message: "Error interno al crear la consulta médica." });
     }
@@ -110,8 +115,7 @@ export class ConsultaController {
 
       if (query.fechaInicio && query.fechaFin && query.fechaInicio > query.fechaFin) {
         return response.status(400).json({
-          message:
-            "La fecha de inicio ('fechaInicio') no puede ser posterior a la fecha de fin ('fechaFin').",
+          message: "La fecha de inicio no puede ser posterior a la fecha de fin.",
         });
       }
 
@@ -127,7 +131,10 @@ export class ConsultaController {
       return response.status(200).json(result);
     } catch (error: unknown) {
       if (error instanceof ZodError) {
-        return response.status(400).json({ message: "Filtros inválidos", errors: error.issues.map(issue => issue.message) });
+        return response.status(400).json({
+          message: "Filtros inválidos",
+          errors: error.issues.map((issue) => issue.message),
+        });
       }
       if (error instanceof Error) {
         return response.status(400).json({ message: error.message });
