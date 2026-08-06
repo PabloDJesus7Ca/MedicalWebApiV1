@@ -23,7 +23,7 @@ export const errorHandler: ErrorRequestHandler = (
     `Error fatal capturado (Status: ${error.status ?? 500})`
   );
 
-  const userId = request.user?.id ?? 0;
+  const userId = request.user?.id ?? undefined;
   logAudit(userId, "ERROR", "System", undefined, `Error ${error.status ?? 500}: ${error.message}`);
 
   const status = error.status ?? 500;
