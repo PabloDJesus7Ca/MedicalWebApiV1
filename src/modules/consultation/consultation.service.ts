@@ -1,4 +1,4 @@
-import { ai, type GenerateContentConfig } from "@shared/utils/ai.helper";
+import { ai, Type, type GenerateContentConfig } from "@shared/utils/ai.helper";
 import { prisma } from "@/config/lib/prisma";
 import { CreateConsultaDto, HistorialFiltersDto, UpdateConsultaDto } from "./consultation.dto";
 import { logAudit } from "@shared/utils/audit.helper";
@@ -35,8 +35,8 @@ export class ConsultaService {
       include: {
         consultas: {
           orderBy: { createdAt: "desc" },
-          take: 5, // Limitar a las últimas 5 para no saturar el prompt
-          select: { createdAt: true, input: true, nivelRiesgo: true }, //No Traer outputs gigantes previos
+          take: 5,
+          select: { createdAt: true, input: true, nivelRiesgo: true },
         },
         laboratorios: {
           orderBy: { fecha: "desc" },
@@ -70,8 +70,7 @@ export class ConsultaService {
       historialTexto = `Consultas previas:\n${consultasTxt}\n\nLaboratorios previos:\n${labsTxt}`;
     }
 
-    // PASO 2: Construir el payload (User Prompt) solo con la data.
-    // La estructura JSON y las reglas se definen en el systemPrompt.
+
     const payload = `Paciente ID: ${dto.pacienteId}
 Síntomas y datos clínicos actuales:
 ${dto.input}
@@ -85,7 +84,32 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
     const configPayload: Record<string, unknown> = {
       temperature: temperatura,
       maxOutputTokens: maxTokens,
-      responseMimeType: "application/json"
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          diagnosticos: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                enfermedad: { type: Type.STRING },
+                probabilidad: { type: Type.NUMBER },
+                nivelRiesgo: { type: Type.STRING },
+                explicacion: { type: Type.STRING },
+              },
+              required: ["enfermedad", "probabilidad", "nivelRiesgo", "explicacion"],
+            },
+          },
+          recomendaciones: { type: Type.STRING },
+          signosAlarma: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+          nivelUrgencia: { type: Type.STRING },
+        },
+        required: ["diagnosticos", "recomendaciones", "signosAlarma", "nivelUrgencia"],
+      },
     };
     if (systemPrompt) {
       configPayload.systemInstruction = systemPrompt;
@@ -108,7 +132,6 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
 
     try {
       const parsedOutput = JSON.parse(output);
-      // El System Prompt define "nivelUrgencia" en lugar de "nivelRiesgoGeneral"
       if (parsedOutput.nivelUrgencia) {
         nivelRiesgo = parsedOutput.nivelUrgencia;
       }
@@ -237,13 +260,6 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
     return parseConsultaOutput(consulta);
   }
 
-  /**
-   * Retorna el historial de consultas del médico autenticado, con filtros
-   * opcionales por paciente y por rango de fechas.
-   *
-   * Solo se retornan consultas cuyo `doctorId` coincide con el médico autenticado:
-   * un médico nunca puede ver el historial de consultas de otro médico.
-   */
   static async getHistorialPorDoctor(
     user: { id: number; rol: string; nombre?: string },
     filtros: HistorialFiltersDto

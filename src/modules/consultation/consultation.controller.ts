@@ -27,10 +27,12 @@ export class ConsultaController {
       });
 
       let outputLimpio = consulta.output;
-      try {
-        outputLimpio = JSON.parse(consulta.output);
-      } catch (e) {
-        logger.info({ e }, "Error al Parsear Datos En La Consulta");
+      if (typeof consulta.output === "string") {
+        try {
+          outputLimpio = JSON.parse(consulta.output);
+        } catch (e) {
+          logger.info({ e }, "Error al Parsear Datos En La Consulta");
+        }
       }
 
       return response.status(201).json({
