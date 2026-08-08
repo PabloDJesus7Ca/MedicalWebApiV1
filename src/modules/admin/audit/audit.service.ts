@@ -72,7 +72,7 @@ export class LogsService {
       });
 
       return {
-        fecha: inicio.toISOString().split("T")[0],
+        fecha: inicio.toISOString().split("T")[0] ?? "",
         consultas: stats._count.id,
         tokens: stats._sum.tokens ?? 0,
       };

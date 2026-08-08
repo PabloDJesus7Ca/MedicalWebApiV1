@@ -1,4 +1,4 @@
-import { ai, type GenerateContentConfig } from "@shared/utils/ai.helper";
+import { ai, Type, type GenerateContentConfig } from "@shared/utils/ai.helper";
 import { prisma } from "@/config/lib/prisma";
 import { CreateConsultaDto, HistorialFiltersDto, UpdateConsultaDto } from "./consultation.dto";
 import { logAudit } from "@shared/utils/audit.helper";
@@ -85,7 +85,32 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
     const configPayload: Record<string, unknown> = {
       temperature: temperatura,
       maxOutputTokens: maxTokens,
-      responseMimeType: "application/json"
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          diagnosticos: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                enfermedad: { type: Type.STRING },
+                probabilidad: { type: Type.NUMBER },
+                nivelRiesgo: { type: Type.STRING },
+                explicacion: { type: Type.STRING },
+              },
+              required: ["enfermedad", "probabilidad", "nivelRiesgo", "explicacion"],
+            },
+          },
+          recomendaciones: { type: Type.STRING },
+          signosAlarma: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+          },
+          nivelUrgencia: { type: Type.STRING },
+        },
+        required: ["diagnosticos", "recomendaciones", "signosAlarma", "nivelUrgencia"],
+      },
     };
     if (systemPrompt) {
       configPayload.systemInstruction = systemPrompt;
