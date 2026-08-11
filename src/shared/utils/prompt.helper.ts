@@ -1,6 +1,6 @@
 import { logger } from "@modules/observability/logger";
 
-export const utilsFormatPrompt = (inputDiagnostic: string) => {
+export const stripMarkdown = (inputDiagnostic: string): string => {
   try {
     if (!inputDiagnostic) return "";
 
@@ -34,3 +34,5 @@ export const utilsFormatPrompt = (inputDiagnostic: string) => {
     return "";
   }
 };
+
+export const utilsFormatPrompt = stripMarkdown;

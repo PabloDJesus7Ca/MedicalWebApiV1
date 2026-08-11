@@ -12,5 +12,3 @@ export function VerifyToken(token: string): JwtPayload {
   return jwt.verify(token, configSystem.JWT_SECRET) as JwtPayload;
 }
 
-export const SingToken = SignToken;
-export const VeriyToken = VerifyToken;
