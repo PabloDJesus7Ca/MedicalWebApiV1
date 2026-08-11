@@ -2,7 +2,7 @@ import { Router } from "express";
 import { ConsultaController } from "./consultation.controller";
 import { middlewareAuth, checkRoleMiddleware } from "@shared/middleware/auth.middleware";
 import { ConsultaLimiter } from "@shared/middleware/rate-limit.middleware";
-import { Rol } from "@/generated/prisma";
+import { Rol } from "@generated/prisma/index.js";
 import { validationRequest } from "@shared/middleware/validation.middleware";
 import { CreateConsultaSchema, UpdateConsultaSchema } from "./consultation.dto";
 

@@ -1,8 +1,8 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 import routerApp from "@routes/app.routes";
-import { checkDomianServerCors } from "@shared/middleware/domain.middleware";
-import { errorHandler, isProduction } from "@shared/middleware/error.middleware";
+import { checkDomainServerCors } from "@shared/middleware/domain.middleware";
+import { errorHandler } from "@shared/middleware/error.middleware";
 import { swaggerSpec } from "@/config/swagger.config";
 import { configSystem } from "@/config/system.config";
 import cors from "cors";
@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
   cors(
-    checkDomianServerCors({
+    checkDomainServerCors({
       ListOfDomainType: [
         "http://localhost:3006",
         "http://localhost:3012",
@@ -43,10 +43,6 @@ app.get("/health", (_, response) => {
 app.use("/*path", (_, response) => {
   response.status(404).json({ message: "Ruta no encontrada en el servidor." });
 });
-
-export const dbConfig = {
-  DATABASE_URL: isProduction ? process.env.DATABASE_URL : "localhost",
-};
 
 app.use(errorHandler);
 

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { checkRoleMiddleware, middlewareAuth } from "@shared/middleware/auth.middleware";
-import { Rol } from "@generated/prisma";
+import { Rol } from "@generated/prisma/index.js";
 import { AdminUsuarioController } from "./user.controller";
 import { validationRequest } from "@shared/middleware/validation.middleware";
 import { CreateUsuarioAdminDto, UpdateUsuarioAdminSchema } from "@modules/user/user.dto";

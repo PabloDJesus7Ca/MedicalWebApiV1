@@ -2,7 +2,7 @@ import { AuthRepository } from "./auth.repository";
 import { UserResponse } from "@shared/class/custom-error.class";
 import { VerifyPassword } from "@shared/utils/password.helper";
 import { CheckTypeLoginDto, LoginResponseDto } from "./auth.dto";
-import { SingToken } from "@shared/utils/jwt.helper";
+import { SignToken } from "@shared/utils/jwt.helper";
 import { logAudit } from "@shared/utils/audit.helper";
 import { logger } from "@modules/observability/logger";
 
@@ -26,6 +26,23 @@ export class AuthService {
       );
     }
 
+    if (!userExist.activo) {
+      await logAudit(
+        userExist.id,
+        "AUTH_FAILED",
+        "User",
+        userExist.id,
+        `Intento de login de usuario inactivo/desactivado: ${userExist.email}`
+      );
+      logger.warn(
+        { user_id: userExist.id, email: userExist.email, accion: "LOGIN_FAILED_INACTIVE_USER" },
+        `Intento de login fallido: usuario inactivo (${userExist.email})`
+      );
+      throw new UserResponse(
+        "Su cuenta ha sido desactivada. Por favor, póngase en contacto con el administrador."
+      );
+    }
+
     const passwordUser = await VerifyPassword(user.password, userExist.password);
 
     if (!passwordUser) {
@@ -45,7 +62,7 @@ export class AuthService {
       );
     }
 
-    const token = SingToken({
+    const token = SignToken({
       id: userExist.id,
       email: userExist.email,
       nombre: userExist.nombre,

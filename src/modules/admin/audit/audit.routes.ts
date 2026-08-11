@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { checkRoleMiddleware, middlewareAuth } from "@shared/middleware/auth.middleware";
-import { Rol } from "@/generated/prisma";
+import { Rol } from "@generated/prisma/index.js";
 import { LogsController } from "./audit.controller";
 
 const router: Router = Router();

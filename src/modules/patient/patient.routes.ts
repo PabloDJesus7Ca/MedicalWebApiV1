@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { PacientesController } from "./patient.controller";
 import { checkRoleMiddleware, middlewareAuth } from "@shared/middleware/auth.middleware";
-import { Rol } from "@generated/prisma";
+import { Rol } from "@generated/prisma/index.js";
 import { validationRequest } from "@shared/middleware/validation.middleware";
 import { CreateLaboratorioSchema, CreatePacienteSchema, UpdatePacienteSchema } from "./patient.dto";
 

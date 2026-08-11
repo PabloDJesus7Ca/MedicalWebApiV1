@@ -1,5 +1,6 @@
 import { ipKeyGenerator, rateLimit } from "express-rate-limit";
 import { logger } from "@modules/observability/logger";
+import { AuthRequest } from "./auth.middleware";
 
 export const LoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -23,18 +24,18 @@ export const ConsultaLimiter = rateLimit({
   limit: 100,
   standardHeaders: "draft-8",
   legacyHeaders: false,
-  keyGenerator: (req: any) => {
-    return req.user?.id ? req.user.id.toString() : ipKeyGenerator(req.ip);
+  keyGenerator: (req: AuthRequest) => {
+    return req.user?.id ? req.user.id.toString() : ipKeyGenerator(req.ip ?? "");
   },
   message:
     "Has alcanzado el límite de consultas permitidas por hora. Por favor, inténtalo de nuevo más tarde.",
   statusCode: 429,
-  handler: (req, res, _next, options) => {
+  handler: (req: AuthRequest, res, _next, options) => {
     logger.warn(
       {
         ip: req.ip,
         endpoint: req.originalUrl,
-        usuario_id: (req as any).user?.id,
+        usuario_id: req.user?.id,
         accion: "RATE_LIMIT_CONSULTA",
       },
       "Alerta: Límite de consultas a la IA excedido."

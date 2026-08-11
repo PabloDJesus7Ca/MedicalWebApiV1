@@ -1,13 +1,13 @@
 import { prisma } from "@/config/lib/prisma";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import { logger } from "@modules/observability/logger";
 
 dotenv.config();
 
 async function main() {
-  console.log("Iniciando el sembrado de datos (seed)...");
+  logger.info("Iniciando el sembrado de datos (seed)...");
 
-  // 1. Crear el primer usuario administrador por defecto
   const adminEmail = process.env.ADMIN_EMAIL as string;
   const defaultPassword = process.env.ADMIN_PASSWORD as string;
 
@@ -28,13 +28,12 @@ async function main() {
         activo: true,
       },
     });
-    console.log(`Usuario administrador creado exitosamente: ${adminEmail}`);
-    console.log(`Contraseña por defecto: ${defaultPassword}`);
+    logger.info(`Usuario administrador creado exitosamente: ${adminEmail}`);
+    logger.info(`Contraseña por defecto: ${defaultPassword}`);
   } else {
-    console.log(`El usuario administrador ya existe: ${adminEmail}`);
+    logger.info(`El usuario administrador ya existe: ${adminEmail}`);
   }
 
-  // 2. Definir el prompt base del sistema
   const systemPromptContent = `Eres un asistente clínico para médicos.
 Tu función es analizar síntomas, antecedentes y hallazgos clínicos del paciente.
 
@@ -43,7 +42,7 @@ Debes responder estructurando la información en un formato JSON válido con el 
   "diagnosticos": [
     {
       "enfermedad": "Nombre de la enfermedad sugerida",
-      "probabilidad": 85, // Porcentaje de confianza estimado
+      "probabilidad": 85,
       "nivelRiesgo": "Alto" | "Medio" | "Bajo",
       "explicacion": "Explicación textual detallada de qué síntomas o antecedentes influyeron en esta sugerencia"
     }
@@ -60,7 +59,6 @@ Restricciones clínicas importantes:
 - Indica siempre que no son diagnósticos definitivos y que el criterio médico final es el único válido.
 Responde estrictamente en formato JSON sin Markdown adicional.`;
 
-  // 3. Crear o actualizar la versión de prompt inicial
   const defaultVersion = "v1.0.0";
   const existingPrompt = await prisma.promptVersion.findFirst({
     where: { version: defaultVersion },
@@ -74,12 +72,11 @@ Responde estrictamente en formato JSON sin Markdown adicional.`;
         activo: true,
       },
     });
-    console.log(`Versión de prompt inicial ${defaultVersion} creada y activada.`);
+    logger.info(`Versión de prompt inicial ${defaultVersion} creada y activada.`);
   } else {
-    console.log(`La versión de prompt ${defaultVersion} ya existe.`);
+    logger.info(`La versión de prompt ${defaultVersion} ya existe.`);
   }
 
-  // 4. Crear la configuración global singleton para Gemini AI (id: 1)
   const existingConfig = await prisma.config.findUnique({
     where: { id: 1 },
   });
@@ -94,17 +91,17 @@ Responde estrictamente en formato JSON sin Markdown adicional.`;
         systemPrompt: systemPromptContent,
       },
     });
-    console.log("Configuración global de Gemini (Singleton) creada con id: 1.");
+    logger.info("Configuración global de Gemini (Singleton) creada con id: 1.");
   } else {
-    console.log("La configuración global de Gemini ya existe.");
+    logger.info("La configuración global de Gemini ya existe.");
   }
 
-  console.log("Sembrado de datos finalizado con éxito.");
+  logger.info("Sembrado de datos finalizado con éxito.");
 }
 
 main()
   .catch((e) => {
-    console.error("Error durante el sembrado de datos (seed):", e);
+    logger.error({ e }, "Error durante el sembrado de datos (seed)");
     process.exit(1);
   })
   .finally(async () => {

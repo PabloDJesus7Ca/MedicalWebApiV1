@@ -6,8 +6,6 @@ import { CheckTypeLoginSchema } from "./auth.dto";
 
 const router: Router = Router();
 
-// TODO: Implementar endpoint POST /api/auth/login (RF-01, RF-02)
-
 /** @swagger
  * /auth/login:
  *   post:

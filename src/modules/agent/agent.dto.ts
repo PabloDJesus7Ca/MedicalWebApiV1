@@ -2,10 +2,11 @@ import { z } from "zod";
 
 export const ChatAgentSchema = z.object({
   pregunta: z.preprocess(
-    (val: any) => {
+    (val: unknown) => {
       if (typeof val === "string") return val;
       if (val && typeof val === "object") {
-        return val.SugestAiAnswerDignostic || val.text || val.message || "";
+        const obj = val as Record<string, unknown>;
+        return (obj.SugestAiAnswerDignostic || obj.text || obj.message || "") as string;
       }
       return "";
     },

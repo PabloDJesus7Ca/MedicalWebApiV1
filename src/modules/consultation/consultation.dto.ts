@@ -5,18 +5,21 @@ export const HistorialFiltersSchema = z.object({
     .number({ error: "ID del paciente es inválido" })
     .int("Debe ser un identificador real")
     .positive("Debe ser un identificador real")
+    .max(2147483647, "El ID del paciente no es válido (demasiado grande)")
     .optional(),
   fechaInicio: z.coerce.date({ error: "Fecha de inicio inválida" }).optional(),
   fechaFin: z.coerce.date({ error: "Fecha de fin inválida" }).optional(),
   page: z.coerce
     .number({ error: "Página inválida" })
-    .int("Debe ser  un numero de pagina entero")
+    .int("Debe ser un numero de pagina entero")
     .positive("Debe ser un numero de pagina positivo")
+    .max(2147483647, "Página fuera de rango")
     .default(1),
   pageSize: z.coerce
     .number({ error: "Tamaño de página inválido" })
     .int("Debe ser entero")
     .positive("Debe ser positivo")
+    .max(100000, "Tamaño de página máximo es 100000")
     .default(10),
   all: z.coerce.boolean({ error: "Debe ser verdadero o falso" }).default(false),
 });
@@ -27,7 +30,8 @@ export const CreateConsultaSchema = z.object({
   pacienteId: z
     .number({ error: "El ID del paciente es requerido y válido" })
     .int("Debe ser entero")
-    .positive("Debe ser positivo"),
+    .positive("Debe ser positivo")
+    .max(2147483647, "El ID del paciente no es válido (demasiado grande)"),
   input: z
     .string({ error: "Los síntomas son requeridos y deben ser texto" })
     .trim()

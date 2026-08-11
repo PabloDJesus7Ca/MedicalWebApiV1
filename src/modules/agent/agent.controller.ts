@@ -6,6 +6,7 @@ import { logAudit } from "@shared/utils/audit.helper";
 
 import { ChatAgentSchema } from "./agent.dto";
 import { ZodError } from "zod";
+import { formatAiError } from "@shared/utils/ai.helper";
 
 export class UserControllerAi {
   static async Chat(request: AuthRequest, response: Response) {
@@ -34,12 +35,8 @@ export class UserControllerAi {
           .status(400)
           .json({ ProcessError: error.issues[0]?.message || "Datos inválidos" });
       }
-      if (error instanceof Error) {
-        return response.status(500).json({ ProcessError: error.message });
-      }
-      return response.status(500).json({
-        ProcessError: "Error interno al procesar la consulta con la inteligencia artificial.",
-      });
+      const safeMessage = formatAiError(error);
+      return response.status(503).json({ ProcessError: safeMessage });
     }
   }
 }

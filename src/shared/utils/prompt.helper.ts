@@ -1,9 +1,11 @@
-// TODO: Implementar formateador estructurado de prompt clínico (BE-11)
-export const utilsFormatPrompt = (SugestAiAnswerDignostic: string) => {
-  try {
-    if (!SugestAiAnswerDignostic) return "";
+import { logger } from "@modules/observability/logger";
 
-    const cleaned = SugestAiAnswerDignostic.replace(/\\r\\n|\\n|\\r/g, "\n")
+export const stripMarkdown = (inputDiagnostic: string): string => {
+  try {
+    if (!inputDiagnostic) return "";
+
+    const cleaned = inputDiagnostic
+      .replace(/\\r\\n|\\n|\\r/g, "\n")
       .replace(/\/n/g, "\n")
       .replace(/\r\n?/g, "\n")
       .replace(/`{3}[\s\S]*?`{3}/g, "")
@@ -27,8 +29,10 @@ export const utilsFormatPrompt = (SugestAiAnswerDignostic: string) => {
     return cleaned;
   } catch (error: unknown) {
     if (error instanceof Error) {
-      console.error({ ErrorFromModel: error.cause });
+      logger.error({ error: error.message }, "Error formateando prompt clínico");
     }
     return "";
   }
 };
+
+export const utilsFormatPrompt = stripMarkdown;
