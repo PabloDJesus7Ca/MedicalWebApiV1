@@ -1,4 +1,4 @@
-import { ai, type GenerateContentConfig } from "@shared/utils/ai.helper";
+import { ai, getActiveAiConfig, type GenerateContentConfig } from "@shared/utils/ai.helper";
 import { prisma } from "@/config/lib/prisma";
 import { AskQuestionDto } from "./chatbot.dto";
 import { logAudit } from "@shared/utils/audit.helper";
@@ -20,10 +20,7 @@ export class ChatbotService {
       );
     }
 
-    const config = await prisma.config.findFirst();
-    const modelName = config?.modelName ?? "gemini-3.5-flash";
-    const temperatura = config?.temperatura ?? 0.1;
-    const maxTokens = config?.maxTokens ?? 4000;
+    const { modelName, temperatura, maxTokens } = await getActiveAiConfig();
 
     const context = `Paciente: ${consulta.paciente.nombre} (Doc: ${consulta.paciente.documento})\n\nSíntomas registrados:\n${consulta.input}\n\nDiagnóstico emitido:\n${consulta.output}\n\n---\n\nResponde la siguiente pregunta del médico basándote en el contexto clínico de esta consulta:\n\n${dto.question}`;
 

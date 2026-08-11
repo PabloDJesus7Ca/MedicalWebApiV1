@@ -1,3 +1,4 @@
+import { Prisma } from "@generated/prisma/index.js";
 import { prisma } from "@/config/lib/prisma";
 import { CreateLaboratorioDto, CreatePacienteDto, UpdatePacienteDto } from "./patient.dto";
 import { logAudit } from "@shared/utils/audit.helper";
@@ -106,7 +107,7 @@ export class PacientesService {
 
     const updated = await prisma.paciente.update({
       where: { id },
-      data: data as any,
+      data: data as Prisma.PacienteUpdateInput,
       include: doctorInclude,
     });
 
@@ -140,7 +141,6 @@ export class PacientesService {
       throw new Error("Paciente no encontrado o acceso denegado.");
     }
 
-    // Soft Delete (Eliminación Lógica)
     await prisma.paciente.update({ where: { id }, data: { activo: false } });
 
     await logAudit(
@@ -235,7 +235,7 @@ export class PacientesService {
         if (typeof consulta.output === "string") {
           try {
             outputParsed = JSON.parse(consulta.output);
-          } catch (e) {}
+          } catch (_e) {}
         }
         return {
           ...consulta,

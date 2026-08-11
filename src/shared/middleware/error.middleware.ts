@@ -6,7 +6,7 @@ import { logger } from "@modules/observability/logger";
 export const isProduction = process.env.NODE_ENV === "production";
 
 if (process.env.NODE_ENV === "development") {
-  console.log("Servidor corriendo en desarrollo");
+  logger.info("Servidor corriendo en desarrollo");
 }
 export interface AppError extends Error {
   status?: number;

@@ -1,4 +1,4 @@
-import { Rol } from "@generated/prisma";
+import { Rol } from "@generated/prisma/index.js";
 import * as z from "zod";
 
 export const CreateUsuarioAdminDto = z.object({
@@ -31,6 +31,12 @@ export const UpdateUsuarioAdminSchema = z.object({
   email: z
     .string({ error: "El email debe ser texto" })
     .email("El email debe ser un campo valido")
+    .trim()
+    .optional(),
+  password: z
+    .string({ error: "Password debe ser texto" })
+    .min(10, "El minimo de caracteres permitido son 10 caracteres")
+    .max(30, "El valor maximo de caracteres permitido son 30 caracteres")
     .trim()
     .optional(),
   rol: z.nativeEnum(Rol, { error: "El rol seleccionado debe ser un rol valido" }).optional(),

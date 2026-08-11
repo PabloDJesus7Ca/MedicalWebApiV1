@@ -1,5 +1,5 @@
 import { prisma } from "@/config/lib/prisma";
-import { AuditLog } from "@generated/prisma";
+import { AuditLog } from "@generated/prisma/index.js";
 
 export interface LogFilters {
   usuario?: string;

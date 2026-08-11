@@ -23,14 +23,14 @@ export const logger = pino({
   transport: {
     targets: [
       {
-        target: "pino-pretty", // Imprime en la consola (terminal)
+        target: "pino-pretty",
         options: {
           colorize: true,
           translateTime: "SYS:standard",
         },
       },
       {
-        target: "pino-loki", // Envía a Grafana
+        target: "pino-loki",
         options: {
           batching: true,
           interval: 5,
@@ -48,7 +48,7 @@ export const logger = pino({
         hostname,
         service: PackageJson.name,
         version: PackageJson.version,
-        enviroment: process.env.NODE_ENV ?? "development",
+        environment: process.env.NODE_ENV ?? "development",
       };
     },
   },

@@ -1,68 +1,96 @@
+import { Prisma } from "@generated/prisma/index.js";
 import { prisma } from "@/config/lib/prisma";
-import { CreatePromptVersionDto, UpdateConfigDto, UpdatePromptVersionDto } from "./ai-config.dto";
+import {
+  CreatePromptVersionDto,
+  UpdateConfigDto,
+  UpdatePromptVersionDto,
+} from "./ai-config.dto";
 import { logAudit } from "@shared/utils/audit.helper";
 import { logger } from "@modules/observability/logger";
 
 export class IaConfigService {
   static async listModels(): Promise<string[]> {
-    // Retornamos únicamente los modelos comprobados que no fallan con la cuota actual.
     return [
       "gemini-3.5-flash",
       "gemini-3.6-flash",
-      "gemini-flash-latest"
+      "gemini-flash-latest",
     ];
   }
 
   static async getConfig() {
     let config = await prisma.config.findFirst();
     if (!config) {
-      config = await prisma.config.create({ data: { id: 1, systemPrompt: "" } });
+      config = await prisma.config.create({
+        data: {
+          modelName: "gemini-3.5-flash",
+          maxTokens: 4000,
+          temperatura: 0.1,
+          systemPrompt:
+            "Eres un asistente médico inteligente que analiza datos clínicos y proporciona diagnósticos estructurados en JSON.",
+        },
+      });
     }
     return config;
   }
 
-  static async updateConfig(adminUser: { id: number; nombre?: string }, dto: UpdateConfigDto) {
-    const config = await this.getConfig();
-    const updated = await prisma.config.update({
-      where: { id: config.id },
-      data: {
-        ...(dto.modelName !== undefined ? { modelName: dto.modelName } : {}),
-        ...(dto.maxTokens !== undefined ? { maxTokens: dto.maxTokens } : {}),
-        ...(dto.temperatura !== undefined ? { temperatura: dto.temperatura } : {}),
-        ...(dto.systemPrompt !== undefined ? { systemPrompt: dto.systemPrompt } : {}),
-      },
-    });
-    const cambios = Object.entries(dto)
-      .map(([k, v]) => `${k}:${v}`)
-      .join(", ");
+  static async updateConfig(
+    adminUser: { id: number; nombre?: string },
+    dto: UpdateConfigDto
+  ) {
+    let config = await prisma.config.findFirst();
+    if (!config) {
+      config = await prisma.config.create({
+        data: {
+          modelName: dto.modelName ?? "gemini-3.5-flash",
+          maxTokens: dto.maxTokens ?? 4000,
+          temperatura: dto.temperatura ?? 0.1,
+          systemPrompt: dto.systemPrompt ?? "Asistente médico IA",
+        },
+      });
+    } else {
+      config = await prisma.config.update({
+        where: { id: config.id },
+        data: {
+          ...(dto.modelName !== undefined ? { modelName: dto.modelName } : {}),
+          ...(dto.maxTokens !== undefined ? { maxTokens: dto.maxTokens } : {}),
+          ...(dto.temperatura !== undefined ? { temperatura: dto.temperatura } : {}),
+          ...(dto.systemPrompt !== undefined ? { systemPrompt: dto.systemPrompt } : {}),
+        },
+      });
+    }
+
     await logAudit(
       adminUser.id,
       "UPDATE",
       "Config",
       config.id,
-      `Admin ${adminUser.nombre || adminUser.id} actualizó la configuración global de la IA: ${cambios}`
+      `Admin ${adminUser.nombre || adminUser.id} actualizó la configuración global de IA (${config.modelName})`
     );
-    logger.warn(
+
+    logger.info(
       {
         admin_id: adminUser.id,
         admin_nombre: adminUser.nombre,
-        accion: "UPDATE_GLOBAL_CONFIG",
-        cambios,
+        accion: "UPDATE_AI_CONFIG",
+        modelo: config.modelName,
       },
-      `El Administrador ${adminUser.nombre || adminUser.id} cambió la configuración global de la IA.`
+      `El Administrador ${adminUser.nombre || adminUser.id} actualizó la configuración de la IA.`
     );
-    return updated;
+
+    return config;
   }
 
   static async listPromptVersions() {
-    return await prisma.promptVersion.findMany({ orderBy: { creadoEn: "desc" } });
+    return await prisma.promptVersion.findMany({
+      orderBy: { creadoEn: "desc" },
+    });
   }
 
   static async createPromptVersion(
     adminUser: { id: number; nombre?: string },
     dto: CreatePromptVersionDto
   ) {
-    const pv = await prisma.promptVersion.create({ data: dto as any });
+    const pv = await prisma.promptVersion.create({ data: dto as Prisma.PromptVersionCreateInput });
     await logAudit(
       adminUser.id,
       "CREATE",
@@ -90,7 +118,10 @@ export class IaConfigService {
     const existing = await prisma.promptVersion.findUnique({ where: { id } });
     if (!existing) throw new Error("La versión de prompt especificada no fue encontrada.");
 
-    const updated = await prisma.promptVersion.update({ where: { id }, data: dto as any });
+    const updated = await prisma.promptVersion.update({
+      where: { id },
+      data: dto as Prisma.PromptVersionUpdateInput,
+    });
     const cambios = Object.entries(dto)
       .map(([k, v]) => `${k}:${v}`)
       .join(", ");

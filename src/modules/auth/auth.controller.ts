@@ -11,7 +11,7 @@ export class AuthController {
         .json({ message: "Has iniciado sesión correctamente.", token, id });
     } catch (error: unknown) {
       if (error instanceof Error) {
-        return response.status(400).json({ message: error.message });
+        return response.status(401).json({ message: error.message });
       }
       return response
         .status(500)
