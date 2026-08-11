@@ -259,13 +259,6 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
     return parseConsultaOutput(consulta);
   }
 
-  /**
-   * Retorna el historial de consultas del médico autenticado, con filtros
-   * opcionales por paciente y por rango de fechas.
-   *
-   * Solo se retornan consultas cuyo `doctorId` coincide con el médico autenticado:
-   * un médico nunca puede ver el historial de consultas de otro médico.
-   */
   static async getHistorialPorDoctor(
     user: { id: number; rol: string; nombre?: string },
     filtros: HistorialFiltersDto
