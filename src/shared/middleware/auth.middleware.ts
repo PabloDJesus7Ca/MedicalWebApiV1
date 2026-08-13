@@ -5,16 +5,17 @@ import { VerifyToken } from "@shared/utils/jwt.helper";
 import { Rol } from "@generated/prisma/index.js";
 import { logAudit } from "@shared/utils/audit.helper";
 import { logger } from "@modules/observability/logger";
+import { prisma } from "@/config/lib/prisma";
 
 export interface AuthRequest extends Request {
   user?: JwtPayload;
 }
 
-export const middlewareAuth = (
+export const middlewareAuth = async (
   request: AuthRequest,
   response: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   const authHeader = request.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -37,7 +38,22 @@ export const middlewareAuth = (
   }
 
   try {
-    request.user = VerifyToken(token);
+    const payload = VerifyToken(token);
+    const userExist = await prisma.user.findUnique({
+      where: { id: payload.id },
+      select: { id: true, activo: true },
+    });
+
+    if (!userExist || !userExist.activo) {
+      logAudit(payload.id, "AUTH_FAILED", "Auth", payload.id, "Intento de acceso de usuario inactivo");
+      logger.warn({ user_id: payload.id, accion: "AUTH_FAILED_INACTIVE" }, "Petición rechazada: Usuario inactivo");
+      response.status(401).json({
+        message: "Su cuenta ha sido desactivada. Por favor, póngase en contacto con el administrador.",
+      });
+      return;
+    }
+
+    request.user = payload;
     next();
   } catch (error) {
     logAudit(undefined, "AUTH_FAILED", "Auth", undefined, "Token inválido o expirado");
