@@ -8,8 +8,8 @@ dotenv.config();
 async function main() {
   logger.info("Iniciando el sembrado de datos (seed)...");
 
-  const adminEmail = process.env.ADMIN_EMAIL as string;
-  const defaultPassword = process.env.ADMIN_PASSWORD as string;
+  const adminEmail = process.env.ADMIN_EMAIL || "AdministradorClinico@gmail.com";
+  const defaultPassword = process.env.ADMIN_PASSWORD || "Admin20051030";
 
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail },

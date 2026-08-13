@@ -87,6 +87,24 @@ export class AdminUsuariosService {
       throw new Error("Usuario no encontrado.");
     }
 
+    if (adminUser.id === id && data.activo !== undefined) {
+      throw new Error("Acceso denegado. No puedes cambiar el estado activo/inactivo de tu propia cuenta.");
+    }
+
+    if (adminUser.id === id && data.rol && data.rol !== "ADMIN") {
+      throw new Error("Acceso denegado. No puedes modificar tu propio rol de administrador.");
+    }
+
+    const initialAdminEmail = (process.env.ADMIN_EMAIL || "AdministradorClinico@gmail.com").toLowerCase();
+    if (usuario.email.toLowerCase() === initialAdminEmail) {
+      if (data.activo === false) {
+        throw new Error("Acceso denegado. El administrador principal del sistema no puede ser desactivado.");
+      }
+      if (data.rol && data.rol !== "ADMIN") {
+        throw new Error("Acceso denegado. El rol del administrador principal del sistema no puede ser cambiado.");
+      }
+    }
+
     if (data.email && data.email !== usuario.email) {
       const emailTomado = await prisma.user.findUnique({ where: { email: data.email } });
       if (emailTomado) {
