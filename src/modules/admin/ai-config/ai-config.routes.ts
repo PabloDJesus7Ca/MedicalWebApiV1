@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { IaConfigController } from "./ai-config.controller";
 import { checkRoleMiddleware, middlewareAuth } from "@shared/middleware/auth.middleware";
-import { Rol } from "@/generated/prisma";
+import { Rol } from "@generated/prisma/index.js";
 import { validationRequest } from "@shared/middleware/validation.middleware";
 import {
   CreatePromptVersionSchema,

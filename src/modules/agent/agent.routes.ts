@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { UserControllerAi } from "@modules/agent/agent.controller";
 import { middlewareAuth, checkRoleMiddleware } from "@shared/middleware/auth.middleware";
-import { Rol } from "@/generated/prisma";
+import { Rol } from "@generated/prisma/index.js";
 import { validationRequest } from "@shared/middleware/validation.middleware";
 import { ChatAgentSchema } from "./agent.dto";
 const routes: Router = Router();

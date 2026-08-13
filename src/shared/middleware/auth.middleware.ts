@@ -1,8 +1,8 @@
 import { Response, NextFunction } from "express";
 import { Request } from "express";
 import { JwtPayload } from "@shared/model/jwt-payload.model";
-import { VeriyToken } from "@shared/utils/jwt.helper";
-import { Rol } from "@/generated/prisma";
+import { VerifyToken } from "@shared/utils/jwt.helper";
+import { Rol } from "@generated/prisma/index.js";
 import { logAudit } from "@shared/utils/audit.helper";
 import { logger } from "@modules/observability/logger";
 
@@ -37,7 +37,7 @@ export const middlewareAuth = (
   }
 
   try {
-    request.user = VeriyToken(token);
+    request.user = VerifyToken(token);
     next();
   } catch (error) {
     logAudit(undefined, "AUTH_FAILED", "Auth", undefined, "Token inválido o expirado");
@@ -45,7 +45,7 @@ export const middlewareAuth = (
       { accion: "AUTH_FAILED_INVALID_TOKEN", error },
       "Petición rechazada: Token inválido o expirado"
     );
-    response.status(401).json({ message: "Acceso denegado. Token inválido o expirado.", error });
+    response.status(401).json({ message: "Acceso denegado. Token inválido o expirado." });
   }
 };
 

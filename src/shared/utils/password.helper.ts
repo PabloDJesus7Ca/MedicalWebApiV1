@@ -1,10 +1,12 @@
 import { hash, compare } from "bcrypt";
 import { CONST_FACTOR } from "@shared/constant/system.constant";
 
-export const hashdPassword = async (passwordInsecureUser: string): Promise<string> => {
+export const hashPassword = async (passwordInsecureUser: string): Promise<string> => {
   const passwordUser = await hash(passwordInsecureUser, CONST_FACTOR);
   return passwordUser;
 };
+
+export const hashdPassword = hashPassword;
 
 export const VerifyPassword = async (
   passwordInsecureUser: string,

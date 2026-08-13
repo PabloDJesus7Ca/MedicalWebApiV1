@@ -5,6 +5,7 @@ import { ConsultaService } from "./consultation.service";
 import { prisma } from "@/config/lib/prisma";
 import { HistorialFiltersSchema } from "./consultation.dto";
 import { ZodError } from "zod";
+import { formatAiError } from "@shared/utils/ai.helper";
 
 export class ConsultaController {
   static async consultar(request: AuthRequest, response: Response) {
@@ -43,11 +44,13 @@ export class ConsultaController {
       if (error instanceof Error) {
         logger.error(
           { error: error.message, stack: error.stack },
-          "Error fatal capturado en controlador"
+          "Error capturado en ConsultaController.consultar"
         );
-        return response
-          .status(500)
-          .json({ message: "Error interno del servidor. Por favor, contacta al administrador." });
+        if (error.message.includes("Paciente no encontrado") || error.message.includes("Acceso denegado")) {
+          return response.status(400).json({ message: error.message });
+        }
+        const safeMessage = formatAiError(error);
+        return response.status(503).json({ message: safeMessage });
       }
       return response.status(500).json({ message: "Error interno al crear la consulta médica." });
     }
@@ -105,7 +108,6 @@ export class ConsultaController {
     }
   }
 
-  // RF-19: historial de consultas del médico autenticado, filtrable por paciente y fecha.
   static async obtenerHistorial(request: AuthRequest, response: Response) {
     try {
       const user = request.user;

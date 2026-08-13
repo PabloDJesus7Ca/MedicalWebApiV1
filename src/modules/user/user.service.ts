@@ -1,5 +1,5 @@
 import { prisma } from "@config/lib/prisma";
-import { hashdPassword } from "@shared/utils/password.helper";
+import { hashPassword } from "@shared/utils/password.helper";
 import { CreateUserAllowedForAdmin, UpdateUsuarioAdminDto } from "./user.dto";
 import { logAudit } from "@shared/utils/audit.helper";
 import { logger } from "@modules/observability/logger";
@@ -14,8 +14,6 @@ const usuarioSelect = {
 } as const;
 
 export class AdminUsuariosService {
-  // TODO: Lógica para leer logs de auditoría inmutables y actualizar configuración de IA (RF-24 a RF-28).
-
   /** Crea un nuevo usuario (médico o administrador). Solo accesible por un ADMIN. */
   static async crearUsuario(
     data: CreateUserAllowedForAdmin,
@@ -30,7 +28,7 @@ export class AdminUsuariosService {
       data: {
         nombre: data.nombre,
         email: data.email,
-        password: await hashdPassword(data.password),
+        password: await hashPassword(data.password),
         rol: data.rol,
       },
       select: usuarioSelect,
@@ -58,7 +56,7 @@ export class AdminUsuariosService {
     return usuario;
   }
 
-  /** Lista todos los usuariosDelte del sistema, sin exponer la contraseña. */
+  /** Lista todos los usuarios del sistema, sin exponer la contraseña. */
   static async listarUsuarios() {
     return await prisma.user.findMany({
       select: usuarioSelect,
@@ -96,9 +94,14 @@ export class AdminUsuariosService {
       }
     }
 
+    const updateData: Record<string, unknown> = { ...data };
+    if (data.password) {
+      updateData.password = await hashPassword(data.password);
+    }
+
     const updated = await prisma.user.update({
       where: { id },
-      data: data as any,
+      data: updateData,
       select: usuarioSelect,
     });
 

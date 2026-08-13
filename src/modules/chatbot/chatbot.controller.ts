@@ -3,6 +3,7 @@ import { AuthRequest } from "@shared/middleware/auth.middleware";
 import { ChatbotService } from "./chatbot.service";
 import { AskQuestionSchema } from "./chatbot.dto";
 import { ZodError } from "zod";
+import { formatAiError } from "@shared/utils/ai.helper";
 
 export class ChatbotController {
   static async ask(request: AuthRequest, response: Response) {
@@ -24,12 +25,11 @@ export class ChatbotController {
       if (error instanceof ZodError) {
         return response.status(400).json({ message: "Datos inválidos", errors: error.issues.map(issue => issue.message) });
       }
-      if (error instanceof Error) {
+      if (error instanceof Error && (error.message.includes("Consulta no encontrada") || error.message.includes("Acceso denegado"))) {
         return response.status(400).json({ message: error.message });
       }
-      return response
-        .status(500)
-        .json({ message: "Error interno al procesar la pregunta del chatbot." });
+      const safeMessage = formatAiError(error);
+      return response.status(503).json({ message: safeMessage });
     }
   }
 }

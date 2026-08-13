@@ -1,8 +1,7 @@
-import { ai, Type, type GenerateContentConfig } from "@shared/utils/ai.helper";
+import { ai, Type, getActiveAiConfig, type GenerateContentConfig } from "@shared/utils/ai.helper";
 import { prisma } from "@/config/lib/prisma";
 import { CreateConsultaDto, HistorialFiltersDto, UpdateConsultaDto } from "./consultation.dto";
 import { logAudit } from "@shared/utils/audit.helper";
-import { System } from "@shared/type/prompt-config.type";
 import { logger } from "@modules/observability/logger";
 
 const inicioDeDia = (fecha: string) => {
@@ -15,11 +14,11 @@ const finDeDia = (fecha: string) => {
   return new Date(year, month - 1, day, 23, 59, 59, 999);
 };
 
-const parseConsultaOutput = (consulta: any) => {
-  if (!consulta || typeof consulta.output !== "string") return consulta;
+const parseConsultaOutput = <T extends Record<string, unknown> | null | undefined>(consulta: T): T => {
+  if (!consulta || typeof (consulta as Record<string, unknown>).output !== "string") return consulta;
   try {
-    return { ...consulta, output: JSON.parse(consulta.output) };
-  } catch (e) {
+    return { ...consulta, output: JSON.parse((consulta as Record<string, unknown>).output as string) };
+  } catch (_e) {
     return consulta;
   }
 };
@@ -29,17 +28,14 @@ export class ConsultaService {
     user: { id: number; rol: string; nombre?: string },
     dto: CreateConsultaDto
   ) {
-    const config = await prisma.config.findFirst();
-    const modelName = config?.modelName ?? "gemini-3.5-flash";
-    const temperatura = config?.temperatura ?? 0.1;
-    const maxTokens = config?.maxTokens ?? 4000;
-    const systemPrompt = config?.systemPrompt ?? System;
+    const { modelName, temperatura, maxTokens, systemPrompt } = await getActiveAiConfig();
 
     const promptVersion = await prisma.promptVersion.findFirst({ where: { activo: true } });
 
-    // PASO 1: Buscar historial médico del paciente para incluirlo en el prompt (RF-18)
     const wherePaciente =
-      user.rol === "ADMIN" ? { id: dto.pacienteId } : { id: dto.pacienteId, creadoPorId: user.id };
+      user.rol === "ADMIN"
+        ? { id: dto.pacienteId, activo: true }
+        : { id: dto.pacienteId, creadoPorId: user.id, activo: true };
     const pacienteHistorial = await prisma.paciente.findFirst({
       where: wherePaciente,
       include: {
@@ -54,6 +50,10 @@ export class ConsultaService {
         },
       },
     });
+
+    if (!pacienteHistorial) {
+      throw new Error("Paciente no encontrado o acceso denegado.");
+    }
 
     let historialTexto = "Sin historial médico previo.";
     if (pacienteHistorial) {
@@ -79,7 +79,6 @@ export class ConsultaService {
 
       historialTexto = `Consultas previas:\n${consultasTxt}\n\nLaboratorios previos:\n${labsTxt}`;
     }
-
 
     const payload = `Paciente ID: ${dto.pacienteId}
 Síntomas y datos clínicos actuales:
@@ -145,7 +144,7 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
       if (parsedOutput.nivelUrgencia) {
         nivelRiesgo = parsedOutput.nivelUrgencia;
       }
-    } catch (e) {
+    } catch (_e) {
       const match = output.match(/"nivelUrgencia"\s*:\s*"(Alto|Medio|Bajo)"/i);
       if (match?.[1]) {
         nivelRiesgo = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
