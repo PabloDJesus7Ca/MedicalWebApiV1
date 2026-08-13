@@ -113,11 +113,13 @@ export class LogsService {
     }
 
     if (filters.fecha) {
-      const date = new Date(filters.fecha);
-      if (!isNaN(date.getTime())) {
-        const inicio = new Date(date.setHours(0, 0, 0, 0));
-        const fin = new Date(date.setHours(23, 59, 59, 999));
-        where.createdAt = { gte: inicio, lte: fin };
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(filters.fecha);
+      if (match) {
+        const [, year = 0, month = 1, day = 1] = match.map(Number);
+        where.createdAt = {
+          gte: new Date(year, month - 1, day, 0, 0, 0, 0),
+          lte: new Date(year, month - 1, day, 23, 59, 59, 999),
+        };
       }
     }
 
