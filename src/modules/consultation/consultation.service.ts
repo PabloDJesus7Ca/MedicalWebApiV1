@@ -4,6 +4,16 @@ import { CreateConsultaDto, HistorialFiltersDto, UpdateConsultaDto } from "./con
 import { logAudit } from "@shared/utils/audit.helper";
 import { logger } from "@modules/observability/logger";
 
+const inicioDeDia = (fecha: string) => {
+  const [year = 0, month = 1, day = 1] = fecha.split("-").map(Number);
+  return new Date(year, month - 1, day, 0, 0, 0, 0);
+};
+
+const finDeDia = (fecha: string) => {
+  const [year = 0, month = 1, day = 1] = fecha.split("-").map(Number);
+  return new Date(year, month - 1, day, 23, 59, 59, 999);
+};
+
 const parseConsultaOutput = <T extends Record<string, unknown> | null | undefined>(consulta: T): T => {
   if (!consulta || typeof (consulta as Record<string, unknown>).output !== "string") return consulta;
   try {
@@ -273,8 +283,8 @@ Por favor, analiza esta información y genera tu respuesta basada en las instruc
       ...(filtros.fechaInicio || filtros.fechaFin
         ? {
             createdAt: {
-              ...(filtros.fechaInicio ? { gte: filtros.fechaInicio } : {}),
-              ...(filtros.fechaFin ? { lte: filtros.fechaFin } : {}),
+              ...(filtros.fechaInicio ? { gte: inicioDeDia(filtros.fechaInicio) } : {}),
+              ...(filtros.fechaFin ? { lte: finDeDia(filtros.fechaFin) } : {}),
             },
           }
         : {}),

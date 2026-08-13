@@ -7,8 +7,14 @@ export const HistorialFiltersSchema = z.object({
     .positive("Debe ser un identificador real")
     .max(2147483647, "El ID del paciente no es válido (demasiado grande)")
     .optional(),
-  fechaInicio: z.coerce.date({ error: "Fecha de inicio inválida" }).optional(),
-  fechaFin: z.coerce.date({ error: "Fecha de fin inválida" }).optional(),
+  fechaInicio: z
+    .string({ error: "Fecha de inicio inválida" })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de fecha inválido, use YYYY-MM-DD")
+    .optional(),
+  fechaFin: z
+    .string({ error: "Fecha de fin inválida" })
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de fecha inválido, use YYYY-MM-DD")
+    .optional(),
   page: z.coerce
     .number({ error: "Página inválida" })
     .int("Debe ser un numero de pagina entero")
