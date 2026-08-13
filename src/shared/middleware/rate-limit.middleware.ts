@@ -4,7 +4,7 @@ import { AuthRequest } from "./auth.middleware";
 
 export const LoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 10,
+  limit: 15,
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message:
